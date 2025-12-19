@@ -1,7 +1,11 @@
 package com.example.cryptowallet.app.di
 
+import com.example.cryptowallet.app.coins.data.remote.impl.KtorCoinsRemoteDataSource
+import com.example.cryptowallet.app.coins.domain.GetCoinsListUseCase
+import com.example.cryptowallet.app.coins.domain.api.CoinsRemoteDataSource
+import com.example.cryptowallet.app.coins.presentation.CoinsListViewModel
+import com.example.cryptowallet.app.core.network.HttpClientFactory
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.HttpClientEngine
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -22,8 +26,14 @@ expect val platformModule: Module
 val sharedModule = module {
 
     // core
-    single<HttpClient> {
-        // Engine is provided by platformModule (Android/Darwin)
-        HttpClient(get<HttpClientEngine>())
-    }
+    single<HttpClient> { HttpClientFactory.create(get()) }
+
+    // data sources
+    single<CoinsRemoteDataSource> { KtorCoinsRemoteDataSource(get()) }
+
+    // use cases
+    single { GetCoinsListUseCase(get()) }
+
+    // view models
+    single { CoinsListViewModel(get()) }
 }
