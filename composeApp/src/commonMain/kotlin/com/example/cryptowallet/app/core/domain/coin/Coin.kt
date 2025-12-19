@@ -1,4 +1,4 @@
-package com.example.cryptowallet.app.coins.domain.coin
+package com.example.cryptowallet.app.core.domain.coin
 
 
 data class Coin(
