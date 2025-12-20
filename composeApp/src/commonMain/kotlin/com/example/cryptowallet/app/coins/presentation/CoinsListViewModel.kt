@@ -2,6 +2,7 @@ package com.example.cryptowallet.app.coins.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cryptowallet.app.coins.domain.GetCoinPriceHistoryUseCase
 import com.example.cryptowallet.app.coins.domain.GetCoinsListUseCase
 import com.example.cryptowallet.app.core.domain.Result
 import com.example.cryptowallet.app.core.util.formatFiat
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 
 class CoinsListViewModel(
     private val getCoinsListUseCase: GetCoinsListUseCase,
+    private val getCoinPriceHistoryUseCase: GetCoinPriceHistoryUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CoinsState())
