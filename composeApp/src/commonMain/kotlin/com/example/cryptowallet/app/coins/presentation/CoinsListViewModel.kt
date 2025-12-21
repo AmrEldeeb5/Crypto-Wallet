@@ -65,51 +65,51 @@ class CoinsListViewModel(
                 }
             }
         }
+    }
 
-        fun onCoinLongPressed(coinId: String) {
-            _state.update {
-                it.copy(
-                    chartState = UiChartState(
-                        sparkLine = emptyList(),
-                        isLoading = true,
-                    )
+    fun onCoinLongPressed(coinId: String) {
+        _state.update {
+            it.copy(
+                chartState = UiChartState(
+                    sparkLine = emptyList(),
+                    isLoading = true,
                 )
-            }
+            )
+        }
 
-            viewModelScope.launch {
-                when (val priceHistory = getCoinPriceHistoryUseCase.execute(coinId)) {
-                    is Result.Success -> {
-                        _state.update { currentState ->
-                            currentState.copy(
-                                chartState = UiChartState(
-                                    sparkLine = priceHistory.data.sortedBy { it.timestamp }
-                                        .map { it.price },
-                                    isLoading = false,
-                                    coinName = _state.value.coins.find { it.id == coinId }?.name.orEmpty(),
-                                )
+        viewModelScope.launch {
+            when (val priceHistory = getCoinPriceHistoryUseCase.execute(coinId)) {
+                is Result.Success -> {
+                    _state.update { currentState ->
+                        currentState.copy(
+                            chartState = UiChartState(
+                                sparkLine = priceHistory.data.sortedBy { it.timestamp }
+                                    .map { it.price },
+                                isLoading = false,
+                                coinName = _state.value.coins.find { it.id == coinId }?.name.orEmpty(),
                             )
-                        }
+                        )
                     }
+                }
 
-                    is Result.Failure -> {
-                        _state.update { currentState ->
-                            currentState.copy(
-                                chartState = UiChartState(
-                                    sparkLine = emptyList(),
-                                    isLoading = false,
-                                    coinName = "",
-                                )
+                is Result.Failure -> {
+                    _state.update { currentState ->
+                        currentState.copy(
+                            chartState = UiChartState(
+                                sparkLine = emptyList(),
+                                isLoading = false,
+                                coinName = "",
                             )
-                        }
+                        )
                     }
                 }
             }
         }
+    }
 
-        fun onDismissChart() {
-            _state.update {
-                it.copy(chartState = null)
-            }
+    fun onDismissChart() {
+        _state.update {
+            it.copy(chartState = null)
         }
     }
 }
