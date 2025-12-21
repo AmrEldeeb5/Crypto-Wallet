@@ -1,6 +1,8 @@
 package com.example.cryptowallet.app.di
 
 import com.example.cryptowallet.app.coins.data.remote.impl.KtorCoinsRemoteDataSource
+import com.example.cryptowallet.app.coins.domain.GetCoinDetailsUseCase
+import com.example.cryptowallet.app.coins.domain.GetCoinPriceHistoryUseCase
 import com.example.cryptowallet.app.coins.domain.GetCoinsListUseCase
 import com.example.cryptowallet.app.coins.domain.api.CoinsRemoteDataSource
 import com.example.cryptowallet.app.coins.presentation.CoinsListViewModel
@@ -35,6 +37,9 @@ val sharedModule = module {
 
     // use cases
     single { GetCoinsListUseCase(get()) }
+    single { GetCoinPriceHistoryUseCase(get()) }
+    single { GetCoinDetailsUseCase(get()) }
+
 
     // view models
     //viewModelOf(::CoinsListViewModel)
