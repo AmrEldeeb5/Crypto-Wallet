@@ -2,7 +2,7 @@ package com.example.cryptowallet.app.di
 
 import androidx.room.RoomDatabase
 import com.example.cryptowallet.app.core.database.portfolio.PortfolioDatabase
-import com.example.cryptowallet.core.database.getPortfolioDatabaseBuilder
+import com.example.cryptowallet.app.core.database.getPortfolioDatabaseBuilder
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import org.koin.core.module.dsl.singleOf

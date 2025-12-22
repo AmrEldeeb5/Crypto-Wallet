@@ -1,4 +1,4 @@
-package com.example.cryptowallet.core.database
+package com.example.cryptowallet.app.core.database
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
