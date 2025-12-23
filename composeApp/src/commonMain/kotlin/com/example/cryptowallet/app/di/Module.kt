@@ -9,11 +9,15 @@ import com.example.cryptowallet.app.coins.presentation.CoinsListViewModel
 import com.example.cryptowallet.app.core.database.portfolio.PortfolioDatabase
 import com.example.cryptowallet.app.core.database.portfolio.getPortfolioDatabase
 import com.example.cryptowallet.app.core.network.HttpClientFactory
+import com.example.cryptowallet.app.portfolio.data.PortfolioRepositoryImpl
+import com.example.cryptowallet.app.portfolio.domain.PortfolioRepository
 import io.ktor.client.HttpClient
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 typealias KoinAppDeclaration = org.koin.core.KoinApplication.() -> Unit
@@ -40,6 +44,7 @@ val sharedModule = module {
     // portfolio
     single { getPortfolioDatabase(get()) }
     single { get<PortfolioDatabase>().portfolioDao() }
+    singleOf(::PortfolioRepositoryImpl).bind<PortfolioRepository>()
 
     // use cases
     single { GetCoinsListUseCase(get()) }
