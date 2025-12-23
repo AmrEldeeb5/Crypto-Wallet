@@ -45,6 +45,7 @@ val sharedModule = module {
     // portfolio
     single { getPortfolioDatabase(get()) }
     single { get<PortfolioDatabase>().portfolioDao() }
+    single { get<PortfolioDatabase>().UserBalanceDao() }
     singleOf(::PortfolioRepositoryImpl).bind<PortfolioRepository>()
 
     // use cases
