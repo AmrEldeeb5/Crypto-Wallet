@@ -49,7 +49,7 @@ fun MainScreen(
     // State
     val coinsState by coinsViewModel.state.collectAsStateWithLifecycle()
     val portfolioState by portfolioViewModel.state.collectAsStateWithLifecycle()
-    val watchlistIds by watchlistRepository.getWatchlist().collectAsState(initial = emptyList())
+    val watchlistIds by watchlistRepository.getWatchlist().collectAsStateWithLifecycle(initialValue = emptyList())
     
     // Local UI state
     var activeTab by remember { mutableStateOf(Tab.MARKET) }
