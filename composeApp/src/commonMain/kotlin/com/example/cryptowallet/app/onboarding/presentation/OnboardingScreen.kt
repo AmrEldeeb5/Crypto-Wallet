@@ -11,7 +11,6 @@
  * - Animated content transitions between steps
  * - Skip confirmation dialog
  * - Success animation on completion
- * - Adaptive layout for different screen sizes (phone, tablet, desktop)
  *
  * @see OnboardingViewModel for state management
  * @see OnboardingState for the state model
@@ -41,7 +40,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,7 +51,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,7 +65,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.cryptowallet.app.onboarding.presentation.components.OnboardingBackground
 import com.example.cryptowallet.app.onboarding.presentation.components.OnboardingButton
 import com.example.cryptowallet.app.onboarding.presentation.components.OnboardingProgressBar
@@ -87,11 +83,6 @@ import org.koin.compose.viewmodel.koinViewModel
  * progress tracking, and navigation controls. Manages the visual
  * presentation while delegating state management to [OnboardingViewModel].
  *
- * Adapts layout based on screen size:
- * - Compact (phone): Full-width card, standard spacing
- * - Medium (tablet): Constrained width, increased spacing
- * - Expanded (desktop/foldable): Maximum width constraint, generous spacing
- *
  * @param onComplete Callback invoked when onboarding is completed
  * @param viewModel The ViewModel managing onboarding state (injected via Koin)
  */
@@ -107,35 +98,6 @@ fun OnboardingScreen(
     val colors = LocalCryptoColors.current
     val typography = LocalCryptoTypography.current
     
-    // Get window size class for adaptive layout
-    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
-    val isCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
-    val isExpanded = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
-    
-    // Adaptive sizing
-    val horizontalPadding = when {
-        isExpanded -> 48.dp
-        isCompact -> 16.dp
-        else -> 24.dp
-    }
-    
-    val cardCornerRadius = when {
-        isExpanded -> 32.dp
-        isCompact -> 24.dp
-        else -> 28.dp
-    }
-    
-    val contentPadding = when {
-        isExpanded -> 32.dp
-        isCompact -> 24.dp
-        else -> 28.dp
-    }
-    
-    val maxCardWidth = when {
-        isExpanded -> 900.dp
-        else -> 700.dp
-    }
-    
     // Set navigation callback
     LaunchedEffect(Unit) {
         viewModel.setNavigationCallback(onComplete)
@@ -147,128 +109,115 @@ fun OnboardingScreen(
         // Animated background
         OnboardingBackground()
         
-        // Main content with adaptive centering
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        // Main content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars)
         ) {
-            Column(
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Progress bar at the very top (like React)
+            OnboardingProgressBar(
+                currentStep = state.currentStep,
+                stepGradient = stepGradient
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Main content card - React: bg-slate-900/50 - more transparent/darker
+            val slateCardBackground = Color(0xFF0F172A).copy(alpha = 0.35f) // slate-900 with more transparency
+            val slateBorder = Color(0xFF334155).copy(alpha = 0.5f) // slate-700/50
+            val cardShape = RoundedCornerShape(24.dp)
+            
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (!isCompact) {
-                            Modifier.widthIn(max = maxCardWidth)
-                        } else {
-                            Modifier
-                        }
-                    )
-                    .windowInsetsPadding(WindowInsets.statusBars),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(cardShape)
+                    .background(slateCardBackground)
+                    .border(1.dp, slateBorder, cardShape)
             ) {
-                Spacer(modifier = Modifier.height(if (isExpanded) 16.dp else 8.dp))
-                
-                // Progress bar at the very top
-                OnboardingProgressBar(
-                    currentStep = state.currentStep,
-                    stepGradient = stepGradient
-                )
-                
-                Spacer(modifier = Modifier.height(if (isExpanded) 24.dp else 16.dp))
-                
-                // Main content card
-                val slateCardBackground = Color(0xFF0F172A).copy(alpha = 0.35f)
-                val slateBorder = Color(0xFF334155).copy(alpha = 0.5f)
-                val cardShape = RoundedCornerShape(cardCornerRadius)
-                
-                Box(
+                Column(
                     modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding)
-                        .clip(cardShape)
-                        .background(slateCardBackground)
-                        .border(1.dp, slateBorder, cardShape)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        // Step content with animated transitions
-                        AnimatedContent(
-                            targetState = state.currentStep,
-                            transitionSpec = {
-                                if (targetState > initialState) {
-                                    slideInHorizontally { it } + fadeIn() togetherWith
-                                        slideOutHorizontally { -it } + fadeOut()
-                                } else {
-                                    slideInHorizontally { -it } + fadeIn() togetherWith
-                                        slideOutHorizontally { it } + fadeOut()
-                                }
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) { step ->
-                            when (step) {
-                                0 -> WelcomeStep()
-                                1 -> FeaturesStep()
-                                2 -> CoinSelectionStep(
-                                    selectedCoins = state.selectedCoins,
-                                    onToggleCoin = { viewModel.onEvent(OnboardingEvent.ToggleCoin(it)) }
-                                )
-                                3 -> NotificationsStep(
-                                    notificationsEnabled = state.notificationsEnabled,
-                                    onToggleNotifications = { viewModel.onEvent(OnboardingEvent.ToggleNotifications) }
-                                )
+                    // Step content with animated transitions
+                    AnimatedContent(
+                        targetState = state.currentStep,
+                        transitionSpec = {
+                            if (targetState > initialState) {
+                                slideInHorizontally { it } + fadeIn() togetherWith
+                                    slideOutHorizontally { -it } + fadeOut()
+                            } else {
+                                slideInHorizontally { -it } + fadeIn() togetherWith
+                                    slideOutHorizontally { it } + fadeOut()
                             }
-                        }
-                        
-                        // Continue button
-                        OnboardingButton(
-                            currentStep = state.currentStep,
-                            enabled = canProceed && !state.isTransitioning,
-                            gradient = stepGradient,
-                            onClick = { viewModel.onEvent(OnboardingEvent.NextStep) },
-                            modifier = Modifier.padding(horizontal = contentPadding, vertical = if (isExpanded) 20.dp else 16.dp)
-                        )
-                        
-                        // Back button (text) - only visible on steps > 0
-                        AnimatedVisibility(
-                            visible = state.currentStep > 0,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            Text(
-                                text = "Back",
-                                style = typography.bodyMedium,
-                                color = colors.textSecondary,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { viewModel.onEvent(OnboardingEvent.PreviousStep) }
-                                    .padding(vertical = if (isExpanded) 16.dp else 12.dp)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) { step ->
+                        when (step) {
+                            0 -> WelcomeStep()
+                            1 -> FeaturesStep()
+                            2 -> CoinSelectionStep(
+                                selectedCoins = state.selectedCoins,
+                                onToggleCoin = { viewModel.onEvent(OnboardingEvent.ToggleCoin(it)) }
+                            )
+                            3 -> NotificationsStep(
+                                notificationsEnabled = state.notificationsEnabled,
+                                onToggleNotifications = { viewModel.onEvent(OnboardingEvent.ToggleNotifications) }
                             )
                         }
-                        
-                        Spacer(modifier = Modifier.height(if (isExpanded) 20.dp else 16.dp))
                     }
-                }
-                
-                // Skip for now text - OUTSIDE the card (only on steps 0-2)
-                if (state.currentStep < 3) {
-                    Text(
-                        text = "Skip for now",
-                        style = typography.bodyMedium,
-                        color = colors.textSecondary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { viewModel.onEvent(OnboardingEvent.SkipToEnd) }
-                            .padding(vertical = if (isExpanded) 20.dp else 16.dp)
+                    
+                    // Continue button
+                    OnboardingButton(
+                        currentStep = state.currentStep,
+                        enabled = canProceed && !state.isTransitioning,
+                        gradient = stepGradient,
+                        onClick = { viewModel.onEvent(OnboardingEvent.NextStep) },
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                     )
+                    
+                    // Back button (text) - only visible on steps > 0
+                    AnimatedVisibility(
+                        visible = state.currentStep > 0,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Text(
+                            text = "Back",
+                            style = typography.bodyMedium,
+                            color = colors.textSecondary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.onEvent(OnboardingEvent.PreviousStep) }
+                                .padding(vertical = 12.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                
-                Spacer(modifier = Modifier.height(if (isExpanded) 20.dp else 16.dp))
             }
+            
+            // Skip for now text - OUTSIDE the card (only on steps 0-2)
+            if (state.currentStep < 3) {
+                Text(
+                    text = "Skip for now",
+                    style = typography.bodyMedium,
+                    color = colors.textSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.onEvent(OnboardingEvent.SkipToEnd) }
+                        .padding(vertical = 16.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
         
         // Skip confirmation dialog
@@ -344,19 +293,11 @@ private fun SkipConfirmationDialog(
  *
  * Displays after completing onboarding with an animated checkmark
  * and welcome message before navigating to the main app.
- * Adapts sizing based on screen size.
  */
 @Composable
 private fun SuccessAnimationOverlay() {
     val colors = LocalCryptoColors.current
     val typography = LocalCryptoTypography.current
-    
-    // Get window size class for adaptive sizing
-    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
-    val isExpanded = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
-    
-    val checkmarkSize = if (isExpanded) 140.dp else 100.dp
-    val iconSize = if (isExpanded) 80.dp else 60.dp
     
     val scale by animateFloatAsState(
         targetValue = 1f,
@@ -388,7 +329,7 @@ private fun SuccessAnimationOverlay() {
             // Animated checkmark
             Box(
                 modifier = Modifier
-                    .size(checkmarkSize)
+                    .size(100.dp)
                     .scale(scale)
                     .clip(CircleShape)
                     .background(Color.White),
@@ -398,26 +339,26 @@ private fun SuccessAnimationOverlay() {
                     imageVector = Icons.Default.Check,
                     contentDescription = "Success",
                     tint = colors.profit,
-                    modifier = Modifier.size(iconSize)
+                    modifier = Modifier.size(60.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.height(if (isExpanded) 32.dp else 24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             // Welcome text
             Text(
                 text = "Welcome aboard!",
-                style = if (isExpanded) typography.displayLarge else typography.displayMedium,
+                style = typography.displayMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
             
-            Spacer(modifier = Modifier.height(if (isExpanded) 12.dp else 8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             Text(
                 text = "Your crypto journey begins now",
-                style = if (isExpanded) typography.titleLarge else typography.bodyLarge,
+                style = typography.bodyLarge,
                 color = Color.White.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center
             )

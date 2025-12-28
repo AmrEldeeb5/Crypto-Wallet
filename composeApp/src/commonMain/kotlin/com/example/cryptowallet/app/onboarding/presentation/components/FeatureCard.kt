@@ -249,7 +249,7 @@ fun CompactFeatureCard(
 fun FeatureCardPreview() {
     val feature = com.example.cryptowallet.app.onboarding.domain.welcomeFeatures[0]
     com.example.cryptowallet.theme.CoinRoutineTheme {
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier.background(Color(0xFF0F172A)).padding(16.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
         ) {

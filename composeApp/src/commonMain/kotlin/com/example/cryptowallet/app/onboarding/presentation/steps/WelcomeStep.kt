@@ -26,13 +26,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,8 +67,8 @@ import kotlinx.coroutines.delay
 fun WelcomeStep(
     modifier: Modifier = Modifier
 ) {
-    val colors = LocalCryptoColors.current
-    val typography = LocalCryptoTypography.current
+    LocalCryptoColors.current
+    LocalCryptoTypography.current
     val accessibility = LocalCryptoAccessibility.current
     val reduceMotion = accessibility.reduceMotion
     
@@ -326,9 +322,9 @@ fun WelcomeHeaderPreview() {
 @org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun WelcomeFeatureCardPreview() {
-    val feature = com.example.cryptowallet.app.onboarding.domain.welcomeFeatures[0]
+    val feature = welcomeFeatures[0]
     com.example.cryptowallet.theme.CoinRoutineTheme {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier.background(Color(0xFF0F172A)).padding(16.dp)
         ) {
             WelcomeFeatureCard(feature = feature)

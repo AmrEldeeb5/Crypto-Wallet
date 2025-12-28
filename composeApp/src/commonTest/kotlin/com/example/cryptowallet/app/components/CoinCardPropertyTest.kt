@@ -2,9 +2,9 @@ package com.example.cryptowallet.app.components
 
 import com.example.cryptowallet.app.realtime.domain.PriceDirection
 import kotlin.test.Test
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class CoinCardPropertyTest {
 
@@ -86,8 +86,8 @@ class CoinCardPropertyTest {
     @Test
     fun `Property 9 - onLongClick callback is invoked when provided`() {
         var longClickInvoked = false
-        
-        val onLongClick: (() -> Unit)? = { longClickInvoked = true }
+
+        val onLongClick: () -> Unit = { longClickInvoked = true }
         onLongClick?.invoke()
         
         assertTrue(longClickInvoked, "onLongClick should be invoked when provided")

@@ -59,7 +59,7 @@ fun CoinSelectionStep(
     onToggleCoin: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colors = LocalCryptoColors.current
+    LocalCryptoColors.current
     
     Column(
         modifier = modifier
@@ -233,7 +233,7 @@ fun SelectionBadgePreview() {
 @Composable
 fun CoinSelectionStepPreview() {
     com.example.cryptowallet.theme.CoinRoutineTheme {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier.background(Color(0xFF0F172A))
         ) {
             CoinSelectionStep(

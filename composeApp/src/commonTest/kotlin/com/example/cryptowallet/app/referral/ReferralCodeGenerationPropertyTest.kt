@@ -37,8 +37,8 @@ class ReferralCodeGenerationPropertyTest {
             "abcdefghij" to "CRYPTOGHIJ".uppercase(),
             "ABCDEF" to "CRYPTOABCDEF"
         )
-        
-        testCases.forEach { (userId, expectedSuffix) ->
+
+        testCases.forEach { (userId, _) ->
             val code = ReferralCodeGenerator.generateCode(userId)
             val suffix = code.substring(6)
             val expectedLastSix = userId.takeLast(6).uppercase()

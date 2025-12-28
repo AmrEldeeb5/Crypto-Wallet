@@ -1,22 +1,47 @@
 package com.example.cryptowallet.app.main.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cryptowallet.app.coins.presentation.CoinsListViewModel
 import com.example.cryptowallet.app.coins.presentation.UiCoinListItem
-import com.example.cryptowallet.app.components.*
+import com.example.cryptowallet.app.components.AlertModal
+import com.example.cryptowallet.app.components.BottomNavItem
+import com.example.cryptowallet.app.components.CryptoBottomNavigation
+import com.example.cryptowallet.app.components.CryptoVaultHeader
+import com.example.cryptowallet.app.components.EmptyState
+import com.example.cryptowallet.app.components.ExpandableCoinCard
+import com.example.cryptowallet.app.components.MoreMenuDropdown
+import com.example.cryptowallet.app.components.PortfolioValueCard
+import com.example.cryptowallet.app.components.PriceAlert
+import com.example.cryptowallet.app.components.SearchBar
+import com.example.cryptowallet.app.components.Tab
+import com.example.cryptowallet.app.components.TabNavigation
+import com.example.cryptowallet.app.components.Timeframe
+import com.example.cryptowallet.app.components.UiCoinItem
+import com.example.cryptowallet.app.components.activeCount
 import com.example.cryptowallet.app.portfolio.presentation.PortfolioViewModel
 import com.example.cryptowallet.app.portfolio.presentation.UiPortfolioCoinItem
-import com.example.cryptowallet.app.realtime.domain.PriceDirection
 import com.example.cryptowallet.app.watchlist.domain.WatchlistRepository
 import com.example.cryptowallet.theme.LocalCryptoColors
 import com.example.cryptowallet.theme.LocalCryptoSpacing
@@ -226,7 +251,7 @@ private fun MarketContent(
     onSellClick: (String) -> Unit,
     onWatchlistToggle: (String) -> Unit
 ) {
-    val colors = LocalCryptoColors.current
+    LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
     
     if (coins.isEmpty()) {
@@ -277,7 +302,7 @@ private fun PortfolioContent(
     onWatchlistToggle: (String) -> Unit,
     onDiscoverClick: () -> Unit
 ) {
-    val colors = LocalCryptoColors.current
+    LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
     
     // Parse portfolio value for the card
@@ -340,7 +365,7 @@ private fun WatchlistContent(
     onWatchlistToggle: (String) -> Unit,
     onDiscoverClick: () -> Unit
 ) {
-    val colors = LocalCryptoColors.current
+    LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
     
     if (coins.isEmpty()) {

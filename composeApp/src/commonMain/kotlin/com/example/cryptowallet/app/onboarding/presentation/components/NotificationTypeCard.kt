@@ -145,7 +145,7 @@ fun NotificationTypeCard(
 fun NotificationTypeCardPreview() {
     val notification = com.example.cryptowallet.app.onboarding.domain.notificationTypes[0]
     com.example.cryptowallet.theme.CoinRoutineTheme {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier.background(Color(0xFF0F172A)).padding(16.dp)
         ) {
             NotificationTypeCard(notificationType = notification)

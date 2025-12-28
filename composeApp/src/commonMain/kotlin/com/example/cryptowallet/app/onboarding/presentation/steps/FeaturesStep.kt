@@ -54,7 +54,7 @@ import com.example.cryptowallet.theme.LocalCryptoTypography
 fun FeaturesStep(
     modifier: Modifier = Modifier
 ) {
-    val colors = LocalCryptoColors.current
+    LocalCryptoColors.current
     
     Column(
         modifier = modifier
@@ -229,7 +229,7 @@ fun FreeForeverBannerPreview() {
 @Composable
 fun FeaturesStepPreview() {
     com.example.cryptowallet.theme.CoinRoutineTheme {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier.background(Color(0xFF0F172A))
         ) {
             FeaturesStep()

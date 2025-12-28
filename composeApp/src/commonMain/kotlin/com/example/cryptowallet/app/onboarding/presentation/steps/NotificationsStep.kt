@@ -456,9 +456,9 @@ fun NotificationsHeaderPreview() {
 @Composable
 fun EnableNotificationsTogglePreview() {
     com.example.cryptowallet.theme.CoinRoutineTheme {
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier.background(Color(0xFF0F172A)).padding(24.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             EnableNotificationsToggle(enabled = true, onToggle = {})
             EnableNotificationsToggle(enabled = false, onToggle = {})
@@ -470,7 +470,7 @@ fun EnableNotificationsTogglePreview() {
 @Composable
 fun NotificationsStepPreview() {
     com.example.cryptowallet.theme.CoinRoutineTheme {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier.background(Color(0xFF0F172A))
         ) {
             NotificationsStep(
@@ -485,7 +485,7 @@ fun NotificationsStepPreview() {
 @Composable
 fun NotificationInfoCardPreview() {
     com.example.cryptowallet.theme.CoinRoutineTheme {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier.background(Color(0xFF0F172A)).padding(16.dp)
         ) {
             NotificationInfoCard(

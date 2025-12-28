@@ -219,7 +219,7 @@ class TradeFlowPropertyTest {
     fun `Property 13 - Subscription cleanup on ViewModel clear`() {
         // This property is verified by the ViewModel's onCleared implementation
         // Here we verify the state can be properly reset
-        val activeState = createTradeState(
+        createTradeState(
             amount = "100",
             availableAmountValue = 1000.0,
             isAmountValid = true

@@ -84,11 +84,6 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
             implementation(libs.coil.svg)
-
-            // Material3 Adaptive (Responsive Layouts)
-            implementation("androidx.compose.material3.adaptive:adaptive:1.0.0")
-            implementation("androidx.compose.material3.adaptive:adaptive-layout:1.0.0")
-            implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.3.0")
         }
         iosMain.dependencies {
             // Ktor - iOS

@@ -135,7 +135,7 @@ fun OnboardingButtonPreview() {
     com.example.cryptowallet.theme.CoinRoutineTheme {
         androidx.compose.foundation.layout.Column(
             modifier = Modifier.background(Color(0xFF0F172A)).padding(16.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OnboardingButton(
                 currentStep = 0,
