@@ -1,6 +1,0 @@
-package com.example.cryptowallet.app.core.domain
-
-interface Error {
-    val message: String
-    val cause: Throwable?
-}

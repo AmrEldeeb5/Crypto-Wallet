@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		27DCD2206119910227FCE912 /* CryptoWallet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CryptoWallet.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		27DCD2206119910227FCE912 /* CryptoVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CryptoVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,7 +59,7 @@
 		858CA39238CB1C0A6B7EEB00 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				27DCD2206119910227FCE912 /* CryptoWallet.app */,
+				27DCD2206119910227FCE912 /* CryptoVault.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = iosApp;
-			productReference = 27DCD2206119910227FCE912 /* CryptoWallet.app */;
+			productReference = 27DCD2206119910227FCE912 /* CryptoVault.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

@@ -93,7 +93,7 @@ This project explicitly does **not** include:
 ### Project Structure
 
 ```
-composeApp/src/commonMain/kotlin/com/example/cryptowallet/
+composeApp/src/commonMain/kotlin/com/example/cryptovault/
 ├── App.kt                          # Application entry point
 ├── Platform.kt                     # Platform-specific declarations
 ├── app/

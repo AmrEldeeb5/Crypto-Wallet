@@ -104,11 +104,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.example.cryptowallet"
+    namespace = "com.example.cryptovault"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.example.cryptowallet"
+        applicationId = "com.example.cryptovault"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

@@ -1,4 +1,4 @@
-rootProject.name = "CryptoWallet"
+rootProject.name = "CryptoVault"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
