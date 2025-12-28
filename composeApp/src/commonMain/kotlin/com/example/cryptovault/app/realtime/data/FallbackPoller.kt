@@ -1,0 +1,93 @@
+package com.example.cryptovault.app.realtime.data
+
+import com.example.cryptovault.app.coins.domain.api.CoinsRemoteDataSource
+import com.example.cryptovault.app.core.domain.onSuccess
+import com.example.cryptovault.app.realtime.domain.PriceUpdate
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+
+class FallbackPoller(
+    private val coinsRemoteDataSource: CoinsRemoteDataSource,
+    private val pollingIntervalMs: Long = 30_000L
+) {
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    private val _priceUpdates = MutableSharedFlow<PriceUpdate>(extraBufferCapacity = 64)
+    val priceUpdates: Flow<PriceUpdate> = _priceUpdates.asSharedFlow()
+
+    private var pollingJob: Job? = null
+    private var subscribedCoinIds = setOf<String>()
+    private val previousPrices = mutableMapOf<String, Double>()
+
+    private var _isPolling = false
+    val isPolling: Boolean get() = _isPolling
+
+    fun startPolling(coinIds: List<String>) {
+        subscribedCoinIds = coinIds.toSet()
+        if (subscribedCoinIds.isEmpty()) {
+            stopPolling()
+            return
+        }
+
+        if (pollingJob?.isActive == true) {
+            // Already polling, just update the coin IDs
+            return
+        }
+
+        _isPolling = true
+        pollingJob = scope.launch {
+            while (isActive) {
+                pollPrices()
+                delay(pollingIntervalMs)
+            }
+        }
+    }
+
+    fun stopPolling() {
+        _isPolling = false
+        pollingJob?.cancel()
+        pollingJob = null
+    }
+
+    fun updateSubscriptions(coinIds: List<String>) {
+        subscribedCoinIds = coinIds.toSet()
+        if (subscribedCoinIds.isEmpty()) {
+            stopPolling()
+        }
+    }
+
+    private suspend fun pollPrices() {
+        if (subscribedCoinIds.isEmpty()) return
+
+        coinsRemoteDataSource.getListOfCoins()
+            .onSuccess { response ->
+                val timestamp = Clock.System.now().toEpochMilliseconds()
+
+                response.data.coins
+                    .filter { it.uuid in subscribedCoinIds }
+                    .forEach { coin ->
+                        val currentPrice = coin.price?.toDoubleOrNull() ?: return@forEach
+                        val previousPrice = previousPrices[coin.uuid] ?: currentPrice
+
+                        val priceUpdate = PriceUpdate(
+                            coinId = coin.uuid,
+                            price = currentPrice,
+                            previousPrice = previousPrice,
+                            timestamp = timestamp
+                        )
+
+                        previousPrices[coin.uuid] = currentPrice
+                        _priceUpdates.emit(priceUpdate)
+                    }
+            }
+    }
+}
