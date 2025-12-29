@@ -1,17 +1,3 @@
-/**
- * FloatingParticles.kt
- *
- * Streaming particle effect for the CryptoVault splash screen.
- * Renders particles that stream rapidly from left to right,
- * creating a dynamic, premium visual experience.
- *
- * Each particle has:
- * - Fast horizontal streaming motion (left → right)
- * - Slight vertical wobble for organic feel
- * - Continuous loop (respawns on left when reaching right edge)
- *
- * Optimized for 60fps performance with hardware-accelerated Canvas rendering.
- */
 package com.example.cryptovault.app.splash.components
 
 import androidx.compose.animation.core.*
@@ -21,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -116,7 +103,9 @@ fun FloatingParticles(
         )
         
         // Calculate wobble offset (±3% of screen height)
-        val wobbleOffset = sin(Math.toRadians(wobblePhase.toDouble())).toFloat() * 0.03f
+        // Convert degrees to radians manually since java.lang.Math is not available in commonMain
+        val radians = wobblePhase * (PI / 180.0)
+        val wobbleOffset = sin(radians).toFloat() * 0.03f
         
         // Opacity animation (fade in/out for depth)
         val animatedAlpha by infiniteTransition.animateFloat(
