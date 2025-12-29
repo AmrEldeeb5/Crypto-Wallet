@@ -71,7 +71,7 @@ fun FloatingParticles(
     
     // Create animated states for all particles
     val particleStates = particleConfigs.mapIndexed { index, (baseY, size, delay) ->
-        val duration = 500 // 0.5 seconds to cross screen (even faster)
+        val duration = 400 // 0.4 seconds to cross screen (even faster)
         
         // Horizontal streaming animation (left → right, continuous)
         val animatedX by infiniteTransition.animateFloat(

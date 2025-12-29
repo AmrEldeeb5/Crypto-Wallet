@@ -76,7 +76,7 @@ fun WelcomeStep(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                horizontal = dimensions.cardPadding * 2,
+                horizontal = dimensions.screenPadding,
                 vertical = dimensions.verticalSpacing * 2
             ),
         horizontalAlignment = Alignment.CenterHorizontally,

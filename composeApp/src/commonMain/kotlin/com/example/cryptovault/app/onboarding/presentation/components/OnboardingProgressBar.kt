@@ -75,13 +75,7 @@ fun OnboardingProgressBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Step indicator text on the left
-            Text(
-                text = "Step ${currentStep + 1} of $totalSteps",
-                style = typography.bodySmall,
-                color = colors.textSecondary
-            )
-            
+
             // Progress segments in the middle
             Row(
                 modifier = Modifier

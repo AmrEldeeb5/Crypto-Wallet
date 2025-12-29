@@ -120,7 +120,7 @@ fun OnboardingScreen(
         ) {
             Spacer(modifier = Modifier.height(dimensions.smallSpacing))
             
-            // Progress bar at the very top (like React)
+            // Progress bar at the very top
             OnboardingProgressBar(
                 currentStep = state.currentStep,
                 stepGradient = stepGradient
