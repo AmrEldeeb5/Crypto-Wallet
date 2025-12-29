@@ -121,9 +121,9 @@ fun OnboardingBackground(
             drawRect(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF020617), // slate-950
-                        Color(0xFF0F172A), // slate-900
-                        Color(0xFF020617)  // slate-950
+                        Color(0xFF04091A), // Slightly brighter than Slate-950
+                        Color(0xFF131C31), // Slightly brighter than Slate-900
+                        Color(0xFF04091A)  // Slightly brighter than Slate-950
                     )
                 )
             )
@@ -217,15 +217,15 @@ private data class SymbolData(
 
 /**
  * Renders floating cryptocurrency symbols across the background.
- * Generates 20 symbols with randomized positions and animation properties.
+ * Generates 25 symbols with randomized positions and animation properties.
  */
 @Composable
 private fun FloatingCryptoSymbols() {
-    val symbols = listOf("₿", "Ξ", "◎", "₳", "Ł", "◈", "⟐", "✦", "⬡", "◇")
+    val symbols = listOf("₿", "Ξ", "◎", "₳", "Ł", "◈", "⟐", "✦", "⬡", "◇", "Ð", "✕", "●")
     
     // Generate random positions and properties for 20 symbols
     val symbolData = remember {
-        (0 until 20).map { index ->
+        (0 until 25).map { index ->
             SymbolData(
                 symbol = symbols[index % symbols.size],
                 x = Random.nextInt(10, 350),

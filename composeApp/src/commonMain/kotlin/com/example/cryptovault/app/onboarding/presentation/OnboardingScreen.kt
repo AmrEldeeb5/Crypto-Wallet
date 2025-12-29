@@ -206,7 +206,7 @@ fun OnboardingScreen(
                             .padding(horizontal = dimensions.screenPadding)
                     )
                     
-                    Spacer(modifier = Modifier.height(dimensions.smallSpacing))
+                    Spacer(modifier = Modifier.height(dimensions.verticalSpacing))
 
                     // Back button (text) - only visible on steps > 0
                     AnimatedVisibility(
@@ -230,7 +230,7 @@ fun OnboardingScreen(
                 }
             }
             
-            Spacer(modifier = Modifier.height(dimensions.smallSpacing))
+            Spacer(modifier = Modifier.height(dimensions.verticalSpacing))
             
             // Skip for now text - OUTSIDE the card (only on steps 0-2)
             if (state.currentStep < 3) {
