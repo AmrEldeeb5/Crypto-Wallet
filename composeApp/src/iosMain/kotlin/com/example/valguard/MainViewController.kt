@@ -1,0 +1,12 @@
+package com.example.valguard
+
+import androidx.compose.ui.window.ComposeUIViewController
+import com.example.valguard.app.di.initKoin
+
+fun MainViewController() = ComposeUIViewController(
+    configure = {
+        initKoin()
+    }
+) {
+    App()
+}

@@ -1,0 +1,12 @@
+package com.example.valguard.app.portfolio.domain
+
+import com.example.valguard.app.core.domain.coin.Coin
+
+
+data class PortfolioCoinModel(
+    val coin: Coin,
+    val performancePercent: Double,
+    val averagePurchasePrice: Double,
+    val ownedAmountInUnit: Double,
+    val ownedAmountInFiat: Double,
+)
