@@ -1,9 +1,12 @@
 /**
  * CryptoColors.kt
  *
- * Defines the custom color system for the CryptoVault application.
+ * Defines the custom dark theme color system for the CryptoVault application.
  * This file contains semantic color tokens that provide consistent theming
- * across the entire app, supporting both dark and light themes.
+ * across the entire app.
+ *
+ * CryptoVault is a dark-theme-only application, optimized for financial
+ * data visualization and reduced eye strain.
  *
  * The color system is organized into categories:
  * - Background colors: Primary and secondary backgrounds
@@ -16,7 +19,6 @@
  * - Utility colors: Dividers, borders, shimmer effects
  *
  * @see DarkCryptoColors for the dark theme implementation
- * @see LightCryptoColors for the light theme implementation
  * @see LocalCryptoColors for accessing colors via CompositionLocal
  */
 package com.example.cryptovault.theme
@@ -241,73 +243,6 @@ val DarkCryptoColors = CryptoColors(
     // Shimmer
     shimmerBase = Color(0xFF1E293B),          // slate-800
     shimmerHighlight = Color(0xFF334155)      // slate-700
-)
-
-/**
- * Light theme color palette for CryptoVault.
- *
- * Alternative theme using lighter slate tones for backgrounds
- * with darker text colors for proper contrast. Maintains the
- * same accent color system as the dark theme.
- *
- * Color references:
- * - Backgrounds: Slate 50/100
- * - Cards: White, Slate 100
- * - Text: Slate 900, Slate 600, Slate 500
- * - Accents: Same as dark theme
- * - Semantic: Emerald 600 (profit), Rose 600 (loss)
- */
-val LightCryptoColors = CryptoColors(
-    // Backgrounds - Using lighter slate tones
-    backgroundPrimary = Color(0xFFF8FAFC),    // slate-50
-    backgroundSecondary = Color(0xFFF1F5F9),  // slate-100
-    
-    // Profit/Loss
-    profit = Color(0xFF059669),               // emerald-600 (darker for light bg)
-    loss = Color(0xFFE11D48),                 // rose-600
-    neutral = Color(0xFF64748B),              // slate-500
-    
-    // Cards
-    cardBackground = Color(0xFFFFFFFF),       // white
-    cardBackgroundElevated = Color(0xFFF1F5F9), // slate-100
-    cardBorder = Color(0xFFE2E8F0),           // slate-200
-    
-    // Text
-    textPrimary = Color(0xFF0F172A),          // slate-900
-    textSecondary = Color(0xFF475569),        // slate-600 (darker for better contrast)
-    textTertiary = Color(0xFF64748B),         // slate-500
-    
-    // Accent - Blue
-    accentBlue400 = Color(0xFF60A5FA),        // blue-400
-    accentBlue500 = Color(0xFF3B82F6),        // blue-500
-    accentBlue600 = Color(0xFF2563EB),        // blue-600
-    
-    // Accent - Purple
-    accentPurple400 = Color(0xFFC084FC),      // purple-400
-    accentPurple500 = Color(0xFFA855F7),      // purple-500
-    accentPurple600 = Color(0xFF9333EA),      // purple-600
-    
-    // Accent - Pink
-    accentPink400 = Color(0xFFF472B6),        // pink-400
-    accentPink500 = Color(0xFFEC4899),        // pink-500
-    
-    // Status
-    statusConnected = Color(0xFF059669),      // emerald-600
-    statusConnecting = Color(0xFF3B82F6),     // blue-500
-    statusError = Color(0xFFE11D48),          // rose-600
-    
-    // Buttons - Use darker blue for better contrast with white text
-    buttonPrimary = Color(0xFF1D4ED8),        // blue-700 (darker for contrast)
-    buttonSecondary = Color(0xFFE2E8F0),      // slate-200
-    buttonDisabled = Color(0xFFCBD5E1),       // slate-300
-    
-    // Dividers
-    divider = Color(0xFFE2E8F0),              // slate-200
-    border = Color(0xFFCBD5E1),               // slate-300
-    
-    // Shimmer
-    shimmerBase = Color(0xFFE2E8F0),          // slate-200
-    shimmerHighlight = Color(0xFFF1F5F9)      // slate-100
 )
 
 /**

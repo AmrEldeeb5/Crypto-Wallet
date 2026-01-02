@@ -2,15 +2,18 @@
  * Theme.kt
  *
  * Main theme configuration file for the CryptoVault application.
- * This file sets up the Material 3 theme and provides all design system
- * tokens through CompositionLocal providers.
+ * This file sets up the Material 3 dark theme for the app.
  *
- * The theme supports:
- * - Automatic dark/light mode based on system settings
- * - Material 3 color scheme integration
+ * CryptoVault is a dark-theme-only application, optimized for:
+ * - Financial data visualization
+ * - Reduced eye strain during extended use
+ * - Premium, modern aesthetic
+ * - Better OLED display efficiency
+ *
+ * The theme provides:
+ * - Material 3 dark color scheme
  * - Custom CryptoVault design tokens (colors, typography, spacing, shapes)
  * - Responsive dimensions that adapt to screen size
- * - Legacy color palette support for backward compatibility
  * - Accessibility settings
  *
  * Usage:
@@ -31,65 +34,18 @@
  */
 package com.example.cryptovault.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 
 /**
- * Material 3 light color scheme for CryptoVault.
- *
- * Maps the app's color palette to Material 3 color roles for
- * proper integration with Material components.
- */
-private val LightColorScheme = lightColorScheme(
-    primary = PrimaryLight,
-    onPrimary = OnPrimaryLight,
-    primaryContainer = PrimaryContainerLight,
-    onPrimaryContainer = OnPrimaryContainerLight,
-    secondary = SecondaryLight,
-    onSecondary = OnSecondaryLight,
-    secondaryContainer = SecondaryContainerLight,
-    onSecondaryContainer = OnSecondaryContainerLight,
-    tertiary = TertiaryLight,
-    onTertiary = OnTertiaryLight,
-    tertiaryContainer = TertiaryContainerLight,
-    onTertiaryContainer = OnTertiaryContainerLight,
-    error = ErrorLight,
-    onError = OnErrorLight,
-    errorContainer = ErrorContainerLight,
-    onErrorContainer = OnErrorContainerLight,
-    background = BackgroundLight,
-    onBackground = OnBackgroundLight,
-    surface = SurfaceLight,
-    onSurface = OnSurfaceLight,
-    surfaceVariant = SurfaceVariantLight,
-    onSurfaceVariant = OnSurfaceVariantLight,
-    outline = OutlineLight,
-    outlineVariant = OutlineVariantLight,
-    scrim = ScrimLight,
-    inverseSurface = InverseSurfaceLight,
-    inverseOnSurface = InverseOnSurfaceLight,
-    inversePrimary = InversePrimaryLight,
-    surfaceDim = SurfaceDimLight,
-    surfaceBright = SurfaceBrightLight,
-    surfaceContainerLowest = SurfaceContainerLowestLight,
-    surfaceContainerLow = SurfaceContainerLowLight,
-    surfaceContainer = SurfaceContainerLight,
-    surfaceContainerHigh = SurfaceContainerHighLight,
-    surfaceContainerHighest = SurfaceContainerHighestLight,
-)
-
-/**
  * Material 3 dark color scheme for CryptoVault.
  *
  * Maps the app's color palette to Material 3 color roles for
- * proper integration with Material components. This is the
- * primary theme used by the application.
+ * proper integration with Material components.
  */
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryDark,
@@ -182,8 +138,8 @@ object AppTheme {
 /**
  * Main theme composable for the CryptoVault application.
  *
- * This function sets up the complete theming system including:
- * - Material 3 color scheme (dark/light based on system preference)
+ * This function sets up the complete dark theming system including:
+ * - Material 3 dark color scheme (always dark, ignores system preference)
  * - Legacy CoinRoutine color palette (for backward compatibility)
  * - Custom CryptoVault design tokens (colors, typography, spacing, shapes)
  * - Responsive dimensions that adapt to screen size
@@ -192,12 +148,11 @@ object AppTheme {
  * All theme values are provided via CompositionLocal, making them
  * accessible throughout the composable tree.
  *
- * @param darkTheme Whether to use dark theme. Defaults to system preference.
  * @param content The composable content to be themed.
  *
  * Example usage:
  * ```kotlin
- * CoinRoutineTheme(darkTheme = true) {
+ * CoinRoutineTheme {
  *     val colors = LocalCryptoColors.current
  *     val typography = LocalCryptoTypography.current
  *     val dimensions = AppTheme.dimensions
@@ -207,16 +162,16 @@ object AppTheme {
  */
 @Composable
 internal fun CoinRoutineTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    // Always use dark theme
+    val colorScheme = DarkColorScheme
     
-    // Legacy color palette (for backward compatibility)
-    val coinRoutineColorsPalette = if (darkTheme) DarkCoinRoutineColorsPalette else LightCoinRoutineColorsPalette
+    // Legacy color palette (for backward compatibility) - always dark
+    val coinRoutineColorsPalette = DarkCoinRoutineColorsPalette
     
-    // New design system tokens
-    val cryptoColors = if (darkTheme) DarkCryptoColors else LightCryptoColors
+    // New design system tokens - always dark
+    val cryptoColors = DarkCryptoColors
     val cryptoTypography = DefaultCryptoTypography
     val cryptoSpacing = DefaultCryptoSpacing
     val cryptoShapes = DefaultCryptoShapes

@@ -104,7 +104,7 @@ fun CoinSelectionStep(
         
         Spacer(modifier = Modifier.height(dimensions.verticalSpacing))
         
-        SelectionBadge(selectedCount = selectedCoins.size)
+        //SelectionBadge(selectedCount = selectedCoins.size)
     }
 }
 

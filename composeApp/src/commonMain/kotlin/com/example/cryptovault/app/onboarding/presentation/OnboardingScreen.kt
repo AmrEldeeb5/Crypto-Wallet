@@ -142,8 +142,8 @@ fun OnboardingScreen(
                     .fillMaxWidth()
                     .padding(horizontal = dimensions.screenPadding)
                     .clip(cardShape)
-                    .background(slateCardBackground)
-                    .border(1.dp, slateBorder, cardShape)
+                     //.background(slateCardBackground)
+                    //.border(1.dp, slateBorder, cardShape)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize()
@@ -191,10 +191,10 @@ fun OnboardingScreen(
                     }
                     
                     // Divider above button
-                    HorizontalDivider(
-                        color = Color(0xFF334155).copy(alpha = 0.5f),
-                        thickness = 1.dp
-                    )
+//                    HorizontalDivider(
+//                        color = Color(0xFF334155).copy(alpha = 0.5f),
+//                        thickness = 1.dp
+//                    )
                     
                     Spacer(modifier = Modifier.height(dimensions.verticalSpacing))
 

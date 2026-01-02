@@ -29,6 +29,10 @@ import com.example.cryptovault.app.realtime.domain.PriceRepository
 import com.example.cryptovault.app.realtime.domain.ReconnectionStrategy
 import com.example.cryptovault.app.realtime.domain.SubscriptionManager
 import com.example.cryptovault.app.realtime.domain.WebSocketClient
+import com.example.cryptovault.app.splash.data.*
+import com.example.cryptovault.app.splash.domain.DeviceCapabilityDetector
+import com.example.cryptovault.app.splash.domain.InitializationOrchestrator
+import com.example.cryptovault.app.splash.presentation.SplashViewModel
 import com.example.cryptovault.app.trade.domain.BuyCoinUseCase
 import com.example.cryptovault.app.trade.domain.SellCoinUseCase
 import com.example.cryptovault.app.trade.presentation.buy.BuyViewModel
@@ -61,6 +65,19 @@ val sharedModule = module {
 
     // core
     single<HttpClient> { HttpClientFactory.create(get()) }
+
+    // splash screen initialization
+    single<DeviceCapabilityDetector> { createDeviceCapabilityDetector() }
+    single<SecureStorageInitializer> { RealSecureStorageInitializer() }
+    single<DatabaseInitializer> { RealDatabaseInitializer() }
+    single<NetworkWarmer> { RealNetworkWarmer() }
+    single<ConfigLoader> { RealConfigLoader() }
+    single<UIReadinessChecker> { RealUIReadinessChecker() }
+    single<InitializationOrchestrator> { 
+        RealInitializationOrchestrator(
+            get(), get(), get(), get(), get()
+        )
+    }
 
     // data sources
     single<CoinsRemoteDataSource> { KtorCoinsRemoteDataSource(get()) }
@@ -103,6 +120,7 @@ val sharedModule = module {
     single { SellCoinUseCase(get()) }
 
     // view models
+    viewModel { SplashViewModel(get(), get()) }
     viewModel { CoinsListViewModel(get(), get(), get()) }
     viewModel { PortfolioViewModel(get(), get()) }
     viewModel { (coinId: String) -> BuyViewModel(coinId, get(), get(), get(), get()) }

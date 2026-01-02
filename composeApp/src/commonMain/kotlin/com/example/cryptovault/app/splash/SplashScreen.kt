@@ -1,44 +1,25 @@
 /**
- * SplashScreen.kt
+ * SplashScreen.kt - V2 Production
  *
- * Main splash screen for the CryptoVault application.
- * Displays animated branding, loading progress, and feature highlights
- * during the 3-second app initialization sequence.
- *
- * The splash screen features:
- * - Animated background with pulsing orbs
- * - Animated logo with rotating rings
- * - Gradient text branding
- * - Feature pills highlighting key app capabilities
- * - Progress indicator with percentage
- * - Staggered entrance animations
- * - Smooth fade-out transition
- *
- * Total duration: ~4.5 seconds (3s loading + 0.5s hold + 1s fade-out)
+ * Production-optimized splash screen with real initialization.
+ * Prioritizes trust, performance, and accessibility.
  */
 package com.example.cryptovault.app.splash
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,84 +28,83 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.cryptovault.app.splash.components.FloatingParticles
 import com.example.cryptovault.app.splash.components.GradientText
-import com.example.cryptovault.app.splash.components.SplashProgressBar
-import com.example.cryptovault.theme.AnimatedCryptoBackground
-import com.example.cryptovault.theme.Blue400
-import com.example.cryptovault.theme.Emerald400
-import com.example.cryptovault.theme.Slate300
-import com.example.cryptovault.theme.Slate600
-import com.example.cryptovault.theme.Slate700
-import com.example.cryptovault.theme.Slate800
-import com.example.cryptovault.theme.Yellow400
-import cryptovault.composeapp.generated.resources.Res
-import cryptovault.composeapp.generated.resources.material_symbols__electric_bolt_outline_rounded
-import cryptovault.composeapp.generated.resources.material_symbols__finance_mode_rounded
-import cryptovault.composeapp.generated.resources.material_symbols__lock_outline
-import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
+import com.example.cryptovault.app.splash.components.OptimizedParticleSystem
+import com.example.cryptovault.app.splash.components.RealProgressBar
+import com.example.cryptovault.app.splash.components.SimplifiedBackground
+import com.example.cryptovault.app.splash.presentation.SplashViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Splash screen composable with animated loading sequence.
- *
- * Orchestrates the entire splash screen experience including:
- * - Progress simulation (0% → 100% over 3 seconds)
- * - Hold at 100% for 500ms
- * - Fade-out animation over 1 second
- * - Navigation callback after completion
- *
- * All UI elements use staggered entrance animations for a progressive
- * reveal effect. The entire screen fades out smoothly before navigating
- * to the main app.
- *
- * @param onSplashComplete Callback invoked when splash sequence completes
+ * V2 Splash screen with real initialization.
+ * 
+ * Key improvements:
+ * - Real progress from actual initialization tasks
+ * - Device capability scaling (particles, animations)
+ * - Accessibility support (TalkBack, reduce motion)
+ * - Early exit when initialization completes
+ * - Faster fade-out (600ms vs 1000ms)
  */
 @Composable
 fun SplashScreen(
-    onSplashComplete: () -> Unit
+    onSplashComplete: () -> Unit,
+    viewModel: SplashViewModel = koinViewModel()
 ) {
-    var progress by remember { mutableStateOf(0f) }
+    val state by viewModel.state.collectAsState()
     var alpha by remember { mutableStateOf(1f) }
     
-    // Simulate loading progress
+    // Start initialization
     LaunchedEffect(Unit) {
-        while (progress < 1f) {
-            delay(30) // Update every 30ms
-            progress = (progress + 0.02f).coerceAtMost(1f) // Increment by 2%, cap at 100%
+        viewModel.startInitialization()
+    }
+    
+    // Navigate when complete
+    LaunchedEffect(state.isComplete) {
+        if (state.isComplete) {
+            alpha = 0f
+            kotlinx.coroutines.delay(600) // Fade-out duration
+            onSplashComplete()
         }
-        // Hold at 100% for 500ms
-        delay(500)
-        // Fade out
-        alpha = 0f
-        delay(1000) // Wait for fade animation
-        onSplashComplete()
+    }
+    
+    // Release animation resources on disposal
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            // Animation resources are automatically released by Compose
+            // This ensures cleanup happens when splash is removed
+        }
     }
     
     // Fade out animation
     val animatedAlpha by animateFloatAsState(
         targetValue = alpha,
-        animationSpec = tween(durationMillis = 1000),
+        animationSpec = tween(durationMillis = 600),
         label = "alpha"
     )
     
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .graphicsLayer { this.alpha = animatedAlpha },
+            .background(Color(0xFF0F172A)) // Slate900 - dark background
+            .graphicsLayer { this.alpha = animatedAlpha }
+            .semantics { contentDescription = "Loading CryptoVault" },
         contentAlignment = Alignment.Center
     ) {
-        // Animated background
-        AnimatedCryptoBackground()
-        
-        // Floating particles
-        FloatingParticles(
+        // Simplified background (max 2 orbs)
+        SimplifiedBackground(
             modifier = Modifier.fillMaxSize(),
-            particleCount = 80 // Ultra fast streaming effect
+            capabilities = state.deviceCapabilities
+        )
+        
+        // Optimized particles (30-40, or 0 if reduce motion)
+        OptimizedParticleSystem(
+            modifier = Modifier.fillMaxSize(),
+            capabilities = state.deviceCapabilities
         )
         
         // Main content
@@ -132,7 +112,6 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(32.dp)
         ) {
-
             Spacer(modifier = Modifier.height(32.dp))
             
             // App name with gradient
@@ -141,7 +120,10 @@ fun SplashScreen(
                 style = MaterialTheme.typography.displayLarge.copy(
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                modifier = Modifier.semantics { 
+                    contentDescription = "CryptoVault logo" 
+                }
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -152,45 +134,15 @@ fun SplashScreen(
                 style = MaterialTheme.typography.titleLarge
             )
             
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(64.dp)) // Reduced from 80dp - moves progress bar up
             
-            // Feature pills
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FeaturePill(
-                    icon = Res.drawable.material_symbols__electric_bolt_outline_rounded,
-                    text = "Real-time",
-                    color = Yellow400
-                )
-                
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                FeaturePill(
-                    icon = Res.drawable.material_symbols__lock_outline,
-                    text = "Secure",
-                    color = Emerald400
-                )
-                
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                FeaturePill(
-                    icon = Res.drawable.material_symbols__finance_mode_rounded,
-                    text = "Analytics",
-                    color = Blue400
-                )
-            }
+            // Real progress bar with phase-specific status
+            RealProgressBar(
+                progress = state.progress,
+                phase = state.currentPhase
+            )
             
-            Spacer(modifier = Modifier.height(80.dp))
-            
-            // Progress bar
-            SplashProgressBar(progress = progress)
-            
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(80.dp)) // Increased spacing to push footer down
             
             // Version info
             Column(
@@ -199,70 +151,15 @@ fun SplashScreen(
                 Text(
                     text = "Version 1.0.0",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Slate600
+                    color = Color(0xFF475569).copy(alpha = 0.6f) // Reduced opacity
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "© 2024 CryptoVault. All rights reserved.",
+                    text = "© 2025 CryptoVault. All rights reserved.",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Slate600
+                    color = Color(0xFF475569).copy(alpha = 0.6f) // Reduced opacity
                 )
             }
         }
-    }
-}
-
-/**
- * Feature pill component displaying an icon and text label.
- *
- * Small UI element that highlights a key app feature with:
- * - Icon in specified accent color
- * - Text label
- * - Semi-transparent background
- * - Subtle border
- *
- * Used to showcase "Real-time", "Secure", and "Analytics" features
- * on the splash screen.
- *
- * @param icon Material icon to display
- * @param text Feature label text
- * @param color Accent color for the icon
- */
-@Composable
-private fun FeaturePill(
-    icon: DrawableResource,
-    text: String,
-    color: Color
-) {
-    Row(
-        modifier = Modifier
-            .background(
-                color = Slate800.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(20.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = Slate700.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(20.dp)
-            )
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = text,
-            tint = color,
-            modifier = Modifier.size(14.dp)
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 11.sp
-            ),
-            color = Slate300,
-            maxLines = 1,
-            softWrap = false
-        )
     }
 }
