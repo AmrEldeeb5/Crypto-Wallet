@@ -104,11 +104,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.example.cryptovault"
+    namespace = "com.example.valguard"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.example.cryptovault"
+        applicationId = "com.example.valguard"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

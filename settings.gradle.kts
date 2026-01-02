@@ -1,4 +1,4 @@
-rootProject.name = "CryptoVault"
+rootProject.name = "Valguard"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
