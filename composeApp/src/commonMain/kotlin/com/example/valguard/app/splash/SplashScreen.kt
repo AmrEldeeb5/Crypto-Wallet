@@ -38,6 +38,7 @@ import com.example.valguard.app.splash.components.OptimizedParticleSystem
 import com.example.valguard.app.splash.components.RealProgressBar
 import com.example.valguard.app.splash.components.SimplifiedBackground
 import com.example.valguard.app.splash.presentation.SplashViewModel
+import com.example.valguard.theme.bebasNeueFontFamily
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -114,7 +115,7 @@ fun SplashScreen(
         ) {
             Spacer(modifier = Modifier.height(32.dp))
             
-            // App name with gradient
+            // App name with gradient and custom Bebas Neue font
             GradientText(
                 text = "Valguard",
                 style = MaterialTheme.typography.displayLarge.copy(

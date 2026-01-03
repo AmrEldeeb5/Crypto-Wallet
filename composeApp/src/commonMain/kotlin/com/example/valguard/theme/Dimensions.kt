@@ -118,28 +118,35 @@ fun calculateWindowSize(screenWidthDp: Int): WindowSize {
  * - 600-1200dp: Tablet dimensions
  * - > 1200dp: Capped at tablet dimensions (with info log)
  *
+ * Incorporates a fluid scale factor (baseline: 360dp) to provide smooth scaling
+ * within size categories.
+ *
  * @param screenWidthDp The width of the screen in DP
  * @return Dimensions object containing all responsive sizing values
  */
 fun calculateDimensions(screenWidthDp: Int): Dimensions {
+    // Scale factor based on screen width (baseline: 360dp)
+    // We dampen the scaling so it's not too aggressive
+    val scaleFactor = (screenWidthDp / 360f).coerceIn(0.85f, 1.3f)
+
     return when {
         // Extremely small screens (< 320dp) - fallback to small phone dimensions
         screenWidthDp < 320 -> {
             println("⚠️ Valguard: Screen width ${screenWidthDp}dp is below minimum supported size (320dp). Using small phone dimensions.")
-            createSmallPhoneDimensions()
+            createSmallPhoneDimensions(scaleFactor)
         }
         // Small phones (320-360dp)
-        screenWidthDp < 360 -> createSmallPhoneDimensions()
+        screenWidthDp < 360 -> createSmallPhoneDimensions(scaleFactor)
         // Medium phones (360-411dp)
-        screenWidthDp < 411 -> createMediumPhoneDimensions()
+        screenWidthDp < 411 -> createMediumPhoneDimensions(scaleFactor)
         // Large phones (411-600dp)
-        screenWidthDp < 600 -> createLargePhoneDimensions()
+        screenWidthDp < 600 -> createLargePhoneDimensions(scaleFactor)
         // Tablets (600-1200dp)
-        screenWidthDp < 1200 -> createTabletDimensions()
+        screenWidthDp < 1200 -> createTabletDimensions(scaleFactor)
         // Extremely large screens (> 1200dp) - cap at tablet dimensions
         else -> {
             println("ℹ️ Valguard: Screen width ${screenWidthDp}dp exceeds typical tablet size. Capping dimensions at tablet values.")
-            createTabletDimensions()
+            createTabletDimensions(scaleFactor)
         }
     }
 }
@@ -152,23 +159,24 @@ fun calculateDimensions(screenWidthDp: Int): Dimensions {
  *
  * Target devices: 4.7" - 5.5" phones (320dp - 360dp width)
  *
+ * @param factor Dynamic scale factor to refine sizing
  * @return Dimensions configured for small phones
  */
-internal fun createSmallPhoneDimensions() = Dimensions(
-    screenPadding = 16.dp,
-    cardPadding = 12.dp,
-    itemSpacing = 8.dp,
-    verticalSpacing = 12.dp,
-    smallSpacing = 4.dp,
+internal fun createSmallPhoneDimensions(factor: Float = 1f) = Dimensions(
+    screenPadding = (16 * factor).dp,
+    cardPadding = (12 * factor).dp,
+    itemSpacing = (8 * factor).dp,
+    verticalSpacing = (12 * factor).dp,
+    smallSpacing = (4 * factor).dp,
     
-    coinIconSize = 36.dp,
-    appIconSize = 48.dp,
+    coinIconSize = (36 * factor).dp.coerceIn(32.dp, 40.dp),
+    appIconSize = (48 * factor).dp,
     
-    buttonHeight = 48.dp,
-    cardCornerRadius = 12.dp,
+    buttonHeight = (48 * factor).dp.coerceIn(44.dp, 52.dp),
+    cardCornerRadius = (12 * factor).dp,
     cardElevation = 3.dp,
     
-    coinCardMinWidth = 130.dp,
+    coinCardMinWidth = (130 * factor).dp,
     gridColumns = 2
 )
 
@@ -180,23 +188,24 @@ internal fun createSmallPhoneDimensions() = Dimensions(
  *
  * Target devices: 5.5" - 6.1" phones (360dp - 411dp width)
  *
+ * @param factor Dynamic scale factor to refine sizing
  * @return Dimensions configured for medium phones
  */
-internal fun createMediumPhoneDimensions() = Dimensions(
-    screenPadding = 16.dp,
-    cardPadding = 14.dp,
-    itemSpacing = 10.dp,
-    verticalSpacing = 14.dp,
-    smallSpacing = 6.dp,
+internal fun createMediumPhoneDimensions(factor: Float = 1f) = Dimensions(
+    screenPadding = (16 * factor).dp,
+    cardPadding = (14 * factor).dp,
+    itemSpacing = (10 * factor).dp,
+    verticalSpacing = (14 * factor).dp,
+    smallSpacing = (6 * factor).dp,
     
-    coinIconSize = 40.dp,
-    appIconSize = 56.dp,
+    coinIconSize = (40 * factor).dp.coerceIn(36.dp, 44.dp),
+    appIconSize = (56 * factor).dp,
     
-    buttonHeight = 50.dp,
-    cardCornerRadius = 14.dp,
+    buttonHeight = (50 * factor).dp.coerceIn(48.dp, 54.dp),
+    cardCornerRadius = (14 * factor).dp,
     cardElevation = 4.dp,
     
-    coinCardMinWidth = 140.dp,
+    coinCardMinWidth = (140 * factor).dp,
     gridColumns = 2
 )
 
@@ -208,23 +217,24 @@ internal fun createMediumPhoneDimensions() = Dimensions(
  *
  * Target devices: 6.1" - 6.7" phones (411dp - 428dp width)
  *
+ * @param factor Dynamic scale factor to refine sizing
  * @return Dimensions configured for large phones
  */
-internal fun createLargePhoneDimensions() = Dimensions(
-    screenPadding = 20.dp,
-    cardPadding = 16.dp,
-    itemSpacing = 12.dp,
-    verticalSpacing = 16.dp,
-    smallSpacing = 8.dp,
+internal fun createLargePhoneDimensions(factor: Float = 1f) = Dimensions(
+    screenPadding = (20 * factor).dp,
+    cardPadding = (16 * factor).dp,
+    itemSpacing = (12 * factor).dp,
+    verticalSpacing = (16 * factor).dp,
+    smallSpacing = (8 * factor).dp,
     
-    coinIconSize = 44.dp,
-    appIconSize = 64.dp,
+    coinIconSize = (44 * factor).dp.coerceIn(40.dp, 48.dp),
+    appIconSize = (64 * factor).dp,
     
-    buttonHeight = 52.dp,
-    cardCornerRadius = 16.dp,
+    buttonHeight = (52 * factor).dp.coerceIn(50.dp, 56.dp),
+    cardCornerRadius = (16 * factor).dp,
     cardElevation = 4.dp,
     
-    coinCardMinWidth = 150.dp,
+    coinCardMinWidth = (150 * factor).dp,
     gridColumns = 2
 )
 
@@ -236,23 +246,24 @@ internal fun createLargePhoneDimensions() = Dimensions(
  *
  * Target devices: 7" tablets and above
  *
+ * @param factor Dynamic scale factor to refine sizing
  * @return Dimensions configured for tablets
  */
-internal fun createTabletDimensions() = Dimensions(
-    screenPadding = 32.dp,
-    cardPadding = 20.dp,
-    itemSpacing = 18.dp,
-    verticalSpacing = 28.dp,
-    smallSpacing = 12.dp,
+internal fun createTabletDimensions(factor: Float = 1f) = Dimensions(
+    screenPadding = (32 * (factor * 0.8f)).dp.coerceAtLeast(24.dp), // Dampen tablet scaling
+    cardPadding = (20 * factor).dp,
+    itemSpacing = (18 * factor).dp,
+    verticalSpacing = (28 * factor).dp,
+    smallSpacing = (12 * factor).dp,
     
-    coinIconSize = 72.dp,
-    appIconSize = 96.dp,
+    coinIconSize = (72 * factor).dp.coerceIn(64.dp, 80.dp),
+    appIconSize = (96 * factor).dp,
     
-    buttonHeight = 60.dp,
-    cardCornerRadius = 18.dp,
+    buttonHeight = (60 * factor).dp.coerceIn(56.dp, 64.dp),
+    cardCornerRadius = (18 * factor).dp,
     cardElevation = 6.dp,
     
-    coinCardMinWidth = 180.dp,
+    coinCardMinWidth = (180 * factor).dp,
     gridColumns = 3
 )
 

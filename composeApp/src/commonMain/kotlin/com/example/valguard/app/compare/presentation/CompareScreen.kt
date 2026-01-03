@@ -104,7 +104,12 @@ fun CompareScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(spacing.md),
+            contentPadding = PaddingValues(
+                start = spacing.md,
+                end = spacing.md,
+                top = spacing.md,
+                bottom = 100.dp // Clear floating bottom nav
+            ),
             verticalArrangement = Arrangement.spacedBy(spacing.md)
         ) {
             item {

@@ -36,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -120,23 +119,17 @@ fun CoinDetailScreen(
                 CoinDetailLoadingContent()
             }
             is UiState.Success -> {
-                PullToRefreshBox(
-                    isRefreshing = state.isPullRefreshing,
-                    onRefresh = { viewModel.onEvent(CoinDetailEvent.Refresh) },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    CoinDetailContent(
-                        coinData = coinData.data,
-                        holdings = state.holdings,
-                        chartState = state.currentChartState,
-                        selectedTimeframe = state.selectedTimeframe,
-                        isOffline = state.isOffline,
-                        onTimeframeSelected = { viewModel.onEvent(CoinDetailEvent.SelectTimeframe(it)) },
-                        onSetAlertClick = { viewModel.onEvent(CoinDetailEvent.ShowAlertModal) },
-                        onBuyClick = { onBuyClick(coinId) },
-                        onSellClick = { onSellClick(coinId) }
-                    )
-                }
+                CoinDetailContent(
+                    coinData = coinData.data,
+                    holdings = state.holdings,
+                    chartState = state.currentChartState,
+                    selectedTimeframe = state.selectedTimeframe,
+                    isOffline = state.isOffline,
+                    onTimeframeSelected = { viewModel.onEvent(CoinDetailEvent.SelectTimeframe(it)) },
+                    onSetAlertClick = { viewModel.onEvent(CoinDetailEvent.ShowAlertModal) },
+                    onBuyClick = { onBuyClick(coinId) },
+                    onSellClick = { onSellClick(coinId) }
+                )
             }
             is UiState.Error -> {
                 ErrorState(

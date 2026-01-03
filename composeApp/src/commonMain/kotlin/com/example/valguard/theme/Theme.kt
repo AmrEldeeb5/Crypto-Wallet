@@ -172,7 +172,7 @@ internal fun CoinRoutineTheme(
     
     // New design system tokens - always dark
     val cryptoColors = DarkCryptoColors
-    val cryptoTypography = DefaultCryptoTypography
+    val cryptoTypography = createCryptoTypography(displayFont = bebasNeueFontFamily())
     val cryptoSpacing = DefaultCryptoSpacing
     val cryptoShapes = DefaultCryptoShapes
     
@@ -198,6 +198,7 @@ internal fun CoinRoutineTheme(
         ) {
             MaterialTheme(
                 colorScheme = colorScheme,
+                typography = cryptoTypography.toMaterialTypography(),
                 content = content,
             )
         }

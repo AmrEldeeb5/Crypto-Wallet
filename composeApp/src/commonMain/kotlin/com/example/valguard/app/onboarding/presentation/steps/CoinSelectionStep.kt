@@ -43,6 +43,7 @@ import com.example.valguard.app.onboarding.presentation.components.CoinSelection
 import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
+import com.example.valguard.theme.bebasNeueFontFamily
 
 /**
  * Coin selection step content for onboarding.
@@ -123,7 +124,9 @@ fun CoinSelectionHeader(
     ) {
         Text(
             text = "Choose Your Favorites",
-            style = typography.displayMedium,
+            style = typography.displayMedium.copy(
+                fontFamily = bebasNeueFontFamily()
+            ),
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
             textAlign = TextAlign.Center

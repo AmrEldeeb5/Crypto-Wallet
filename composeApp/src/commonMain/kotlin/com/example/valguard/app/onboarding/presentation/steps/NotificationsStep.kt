@@ -58,6 +58,7 @@ import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoAccessibility
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
+import com.example.valguard.theme.bebasNeueFontFamily
 import valguard.composeapp.generated.resources.Res
 import valguard.composeapp.generated.resources.material_symbols__account_balance_wallet_outline
 import valguard.composeapp.generated.resources.material_symbols__finance_mode_rounded
@@ -229,7 +230,9 @@ fun NotificationsHeader(
         
         Text(
             text = "Never Miss a Move",
-            style = typography.displayMedium,
+            style = typography.displayMedium.copy(
+                fontFamily = bebasNeueFontFamily()
+            ),
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
             textAlign = TextAlign.Center

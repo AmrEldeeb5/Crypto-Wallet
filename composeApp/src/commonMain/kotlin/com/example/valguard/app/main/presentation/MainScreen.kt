@@ -1,10 +1,12 @@
 package com.example.valguard.app.main.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,7 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.valguard.app.coins.presentation.CoinsListViewModel
 import com.example.valguard.app.coins.presentation.UiCoinListItem
@@ -111,9 +117,14 @@ fun MainScreen(
                 )
                 
                 // Search bar
+                val searchPlaceholder = when (activeTab) {
+                    Tab.PORTFOLIO -> "Search your assets"
+                    else -> "Search cryptocurrencies"
+                }
                 SearchBar(
                     query = coinsState.searchQuery,
                     onQueryChange = { coinsViewModel.onSearchQueryChange(it) },
+                    placeholder = searchPlaceholder,
                     modifier = Modifier.padding(vertical = spacing.sm)
                 )
                 
@@ -300,6 +311,36 @@ private fun MarketContent(
 }
 
 @Composable
+private fun QuickActionsRow() {
+    val colors = LocalCryptoColors.current
+    val spacing = LocalCryptoSpacing.current
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        listOf("Buy", "Watchlist", "Alert").forEach { label ->
+            Box(
+                modifier = Modifier
+                    .background(colors.cardBackground.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                    .border(1.dp, colors.cardBorder.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = label,
+                    fontSize = 12.sp,
+                    color = colors.textTertiary.copy(alpha = 0.5f),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun PortfolioContent(
     portfolioValue: String,
     change24h: String,
@@ -316,7 +357,7 @@ private fun PortfolioContent(
     onWatchlistToggle: (String) -> Unit,
     onDiscoverClick: () -> Unit
 ) {
-    LocalCryptoColors.current
+    val colors = LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
     
     // Parse portfolio value for the card
@@ -338,18 +379,43 @@ private fun PortfolioContent(
         item {
             PortfolioValueCard(
                 totalValue = portfolioValueDouble,
-                change24h = actualChange
+                change24h = actualChange,
+                isEmpty = coins.isEmpty()
             )
         }
         
         if (coins.isEmpty()) {
             item {
-                EmptyState(
-                    title = "No holdings yet",
-                    description = "Start building your portfolio by buying some coins",
-                    actionLabel = "Discover Coins",
-                    onAction = onDiscoverClick
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    EmptyState(
+                        title = "No holdings yet",
+                        description = "Start building your portfolio by buying some coins",
+                        actionLabel = "Build Your Portfolio",
+                        onAction = onDiscoverClick
+                    )
+                    
+                    Text(
+                        text = "Most portfolios start with Bitcoin or Ethereum",
+                        fontSize = 13.sp,
+                        color = colors.textSecondary.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(spacing.lg))
+                    
+                    Text(
+                        text = "Available Actions",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.textTertiary,
+                        modifier = Modifier.align(Alignment.Start).padding(bottom = 4.dp)
+                    )
+                    
+                    QuickActionsRow()
+                }
             }
         } else {
             items(coins, key = { it.id }) { coin ->

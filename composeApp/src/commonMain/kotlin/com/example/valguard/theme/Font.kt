@@ -24,14 +24,27 @@ package com.example.valguard.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import org.jetbrains.compose.resources.Font
+import valguard.composeapp.generated.resources.Res
+import valguard.composeapp.generated.resources.bebas_neue_regular
+
+/**
+ * Creates the Bebas Neue font family for use in splash screen.
+ *
+ * Bebas Neue is a bold, condensed display font perfect for titles and headings.
+ *
+ * @return A [FontFamily] containing Bebas Neue Regular font.
+ */
+@Composable
+fun bebasNeueFontFamily() = FontFamily(
+    Font(Res.font.bebas_neue_regular, weight = FontWeight.Normal)
+)
 
 // TODO: Add Ubuntu font files to composeResources/font/ directory
-// import Valguard.composeapp.generated.resources.Res
 // import Valguard.composeapp.generated.resources.Ubuntu_Bold
 // import Valguard.composeapp.generated.resources.Ubuntu_Light
 // import Valguard.composeapp.generated.resources.Ubuntu_Medium
 // import Valguard.composeapp.generated.resources.Ubuntu_Regular
-// import org.jetbrains.compose.resources.Font
 
 /**
  * Creates the Ubuntu font family for use in typography.

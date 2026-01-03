@@ -12,10 +12,13 @@ import com.example.valguard.app.core.domain.onSuccess
 import com.example.valguard.app.core.util.UiState
 import com.example.valguard.app.portfolio.domain.PortfolioRepository
 import com.example.valguard.app.watchlist.domain.WatchlistRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class CoinDetailViewModel(
@@ -28,18 +31,39 @@ class CoinDetailViewModel(
     private val _state = MutableStateFlow(CoinDetailState())
     val state: StateFlow<CoinDetailState> = _state.asStateFlow()
     
+    private var autoRefreshJob: Job? = null
+    private companion object {
+        const val AUTO_REFRESH_INTERVAL_MS = 60_000L // 1 minute
+    }
     
     fun onEvent(event: CoinDetailEvent) {
         when (event) {
-            is CoinDetailEvent.LoadCoin -> loadCoin(event.coinId)
+            is CoinDetailEvent.LoadCoin -> {
+                loadCoin(event.coinId)
+                startAutoRefresh(event.coinId)
+            }
             is CoinDetailEvent.SelectTimeframe -> selectTimeframe(event.timeframe)
             is CoinDetailEvent.ToggleWatchlist -> toggleWatchlist()
             is CoinDetailEvent.Retry -> retry()
-            is CoinDetailEvent.Refresh -> refreshData()
             is CoinDetailEvent.ShowAlertModal -> _state.update { it.copy(showAlertModal = true) }
             is CoinDetailEvent.HideAlertModal -> _state.update { it.copy(showAlertModal = false) }
             else -> { /* Navigation events handled by UI */ }
         }
+    }
+    
+    private fun startAutoRefresh(coinId: String) {
+        autoRefreshJob?.cancel()
+        autoRefreshJob = viewModelScope.launch {
+            while (isActive) {
+                delay(AUTO_REFRESH_INTERVAL_MS)
+                loadCoin(coinId, isRefresh = true)
+            }
+        }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        autoRefreshJob?.cancel()
     }
     
     private fun loadCoin(coinId: String, isRefresh: Boolean = false) {
@@ -81,8 +105,8 @@ class CoinDetailViewModel(
                             description = "A decentralized digital currency that enables instant payments to anyone, anywhere in the world."
                         )
                         
-                        // Update state to Success and clear pull refresh flag
-                        _state.update { it.copy(coinData = UiState.Success(coinDetailData), isOffline = false, isPullRefreshing = false) }
+                        // Update state to Success
+                        _state.update { it.copy(coinData = UiState.Success(coinDetailData), isOffline = false) }
                         
                         // Fetch chart data for current timeframe
                         fetchPriceHistory(coinModel.coin.id, _state.value.selectedTimeframe)
@@ -94,19 +118,17 @@ class CoinDetailViewModel(
                         _state.update { 
                             it.copy(
                                 coinData = UiState.Error("Failed to load coin details"),
-                                isOffline = true,
-                                isPullRefreshing = false
+                                isOffline = true
                             ) 
                         }
                     }
                 }
             }.onFailure { throwable ->
-                // Handles exceptions, cancellation, etc. - always exits Loading and clears refresh
+                // Handles exceptions, cancellation, etc. - always exits Loading
                 _state.update { 
                     it.copy(
                         coinData = UiState.Error(throwable.message ?: "An error occurred"),
-                        isOffline = true,
-                        isPullRefreshing = false
+                        isOffline = true
                     ) 
                 }
             }
@@ -148,13 +170,17 @@ class CoinDetailViewModel(
                     }
                     is com.example.valguard.app.core.domain.Result.Failure -> {
                         _state.update { 
-                            it.copy(chartData = it.chartData + (timeframe to UiState.Error("Failed to load chart data")))
+                            it.copy(
+                                chartData = it.chartData + (timeframe to UiState.Error("Failed to load chart data"))
+                            )
                         }
                     }
                 }
             }.onFailure { throwable ->
                 _state.update { 
-                    it.copy(chartData = it.chartData + (timeframe to UiState.Error(throwable.message ?: "Chart error")))
+                    it.copy(
+                        chartData = it.chartData + (timeframe to UiState.Error(throwable.message ?: "Chart error"))
+                    )
                 }
             }
         }
@@ -217,22 +243,6 @@ class CoinDetailViewModel(
             } catch (_: Exception) {
                 // Failed to toggle watchlist
             }
-        }
-    }
-    
-    fun refreshData() {
-        val coinId = _state.value.coinId
-        if (coinId.isNotEmpty()) {
-            // Set pull refresh flag and clear error for current timeframe
-            _state.update { 
-                it.copy(
-                    isPullRefreshing = true,
-                    chartData = if (it.chartData[it.selectedTimeframe] is UiState.Error) {
-                        it.chartData - it.selectedTimeframe
-                    } else it.chartData
-                ) 
-            }
-            loadCoin(coinId, isRefresh = true)
         }
     }
     

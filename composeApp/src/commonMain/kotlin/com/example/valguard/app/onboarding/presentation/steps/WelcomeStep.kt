@@ -57,6 +57,7 @@ import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoAccessibility
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
+import com.example.valguard.theme.bebasNeueFontFamily
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 
@@ -124,6 +125,7 @@ fun WelcomeHeader(
         Text(
             text = "Welcome to Valguard",
             style = typography.titleLarge.copy(
+                fontFamily = bebasNeueFontFamily(),
                 brush = Brush.linearGradient(
                     colors = listOf(
                         colors.accentBlue400,

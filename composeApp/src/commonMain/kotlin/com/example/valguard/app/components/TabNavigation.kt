@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,7 +65,8 @@ fun TabNavigation(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(colors.cardBackground.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(colors.backgroundSecondary)
             .padding(4.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
@@ -101,6 +101,9 @@ private fun TabItem(
     val colors = LocalCryptoColors.current
     val shape = RoundedCornerShape(8.dp)
     
+    // Increase height by 4dp when active (8dp -> 12dp padding)
+    val verticalPadding = if (isActive) 12.dp else 8.dp
+    
     val backgroundModifier = if (isActive) {
         Modifier.background(
             brush = Brush.horizontalGradient(
@@ -113,7 +116,7 @@ private fun TabItem(
         )
     } else {
         Modifier.background(
-            color = colors.cardBackground.copy(alpha = 0.4f),
+            color = colors.backgroundSecondary,
             shape = shape
         )
     }
@@ -123,14 +126,14 @@ private fun TabItem(
             .clip(shape)
             .then(backgroundModifier)
             .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
+            .padding(vertical = verticalPadding),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = tab.label,
             fontSize = 14.sp,
             fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isActive) colors.textPrimary else colors.textSecondary.copy(alpha = 0.7f)
+            color = if (isActive) colors.textPrimary else colors.textSecondary
         )
     }
 }

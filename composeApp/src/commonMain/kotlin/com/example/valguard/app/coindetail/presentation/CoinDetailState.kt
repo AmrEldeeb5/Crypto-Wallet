@@ -14,8 +14,7 @@ data class CoinDetailState(
     val selectedTimeframe: ChartTimeframe = ChartTimeframe.DAY_1,
     val isInWatchlist: Boolean = false,
     val isOffline: Boolean = false,
-    val showAlertModal: Boolean = false,
-    val isPullRefreshing: Boolean = false // Only true when user explicitly pulls to refresh
+    val showAlertModal: Boolean = false
 ) {
     val hasHoldings: Boolean get() = holdings != null && holdings.amountOwned > 0
     
@@ -28,7 +27,6 @@ sealed class CoinDetailEvent {
     data class SelectTimeframe(val timeframe: ChartTimeframe) : CoinDetailEvent()
     data object ToggleWatchlist : CoinDetailEvent()
     data object Retry : CoinDetailEvent()
-    data object Refresh : CoinDetailEvent()
     data object ShowAlertModal : CoinDetailEvent()
     data object HideAlertModal : CoinDetailEvent()
     data object NavigateToBuy : CoinDetailEvent()

@@ -49,6 +49,7 @@ import com.example.valguard.app.onboarding.presentation.components.FeatureCard
 import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
+import com.example.valguard.theme.bebasNeueFontFamily
 import valguard.composeapp.generated.resources.Res
 import valguard.composeapp.generated.resources.material_symbols__shield_outline_rounded
 import org.jetbrains.compose.resources.painterResource
@@ -153,7 +154,9 @@ fun FeaturesHeader(
     ) {
         Text(
             text = "Everything You Need",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontFamily = bebasNeueFontFamily()
+            ),
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
             textAlign = TextAlign.Center

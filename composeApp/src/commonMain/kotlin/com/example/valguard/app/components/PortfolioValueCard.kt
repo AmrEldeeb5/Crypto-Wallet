@@ -50,6 +50,7 @@ import kotlin.math.pow
 fun PortfolioValueCard(
     totalValue: Double,
     change24h: Double,
+    isEmpty: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val colors = LocalCryptoColors.current
@@ -57,8 +58,9 @@ fun PortfolioValueCard(
     val isPositive = change24h >= 0
     val changeColor = if (isPositive) colors.profit else colors.loss
     
-    // Format values
-    val formattedValue = formatCurrency(totalValue)
+    // Derive values based on isEmpty
+    val displayValue = if (isEmpty) 0.0 else totalValue
+    val formattedValue = formatCurrency(displayValue)
     val formattedChange = formatPercentage(change24h)
     
     Box(
@@ -115,6 +117,16 @@ fun PortfolioValueCard(
                     text = " (24h)",
                     fontSize = 14.sp,
                     color = colors.textTertiary
+                )
+            }
+            
+            if (isEmpty) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Start investing to build your portfolio",
+                    fontSize = 13.sp,
+                    color = colors.accentBlue400,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
