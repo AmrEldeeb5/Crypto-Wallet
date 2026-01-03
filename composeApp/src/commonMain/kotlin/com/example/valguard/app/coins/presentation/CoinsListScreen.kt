@@ -64,7 +64,7 @@ fun CoinsListContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.cardBackground)
+            .background(colors.cardBackground.copy(alpha = 0.4f))
             .windowInsetsPadding(WindowInsets.safeDrawing),
         contentAlignment = Alignment.Center
     ) {
@@ -132,7 +132,7 @@ fun CoinsList(
         verticalArrangement = Arrangement.spacedBy(spacing.xs),
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.cardBackground)
+            .background(colors.cardBackground.copy(alpha = 0.4f))
             .padding(horizontal = spacing.md),
     ) {
         item {

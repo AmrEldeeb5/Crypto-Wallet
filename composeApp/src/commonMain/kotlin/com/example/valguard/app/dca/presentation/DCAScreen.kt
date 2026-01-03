@@ -67,13 +67,13 @@ fun DCAScreen(
     }
     
     Scaffold(
-        topBar = {
-            ScreenHeader(
-                title = "Dollar-Cost Averaging",
-                subtitle = "Automate your crypto investments",
-                onBackClick = onBack
-            )
-        },
+//        topBar = {
+//            ScreenHeader(
+//                title = "Dollar-Cost Averaging",
+//                subtitle = "Automate your crypto investments",
+//                onBackClick = onBack
+//            )
+//        },
         containerColor = colors.backgroundPrimary
     ) { paddingValues ->
         Column(
@@ -260,22 +260,7 @@ private fun DCAScheduleList(
         ),
         verticalArrangement = Arrangement.spacedBy(spacing.md)
     ) {
-        if (schedules.isNotEmpty()) {
-            items(schedules, key = { it.id }) { schedule ->
-                DCAScheduleCard(
-                    schedule = schedule,
-                    onEditClick = { onEditClick(schedule) },
-                    onDeleteClick = { onDeleteClick(schedule.id) },
-                    onToggleActive = { onToggleActive(schedule.id, it) },
-                    onCardClick = { onCardClick(schedule) }
-                )
-            }
-            
-            item {
-                Spacer(modifier = Modifier.height(spacing.lg))
-            }
-        }
-        
+        // Create/Edit form always at the top
         item {
             CreateNewScheduleSection(
                 formState = formState,
@@ -288,6 +273,22 @@ private fun DCAScheduleList(
                 onSelectCoin = onCoinClick,
                 onCancelEdit = onCancelEdit
             )
+        }
+        
+        if (schedules.isNotEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(spacing.sm))
+            }
+            
+            items(schedules, key = { it.id }) { schedule ->
+                DCAScheduleCard(
+                    schedule = schedule,
+                    onEditClick = { onEditClick(schedule) },
+                    onDeleteClick = { onDeleteClick(schedule.id) },
+                    onToggleActive = { onToggleActive(schedule.id, it) },
+                    onCardClick = { onCardClick(schedule) }
+                )
+            }
         }
         
         item {
@@ -1009,7 +1010,7 @@ private fun CoinSelectorBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = colors.backgroundPrimary,
-        modifier = Modifier.fillMaxHeight(0.9f),
+        modifier = Modifier.fillMaxHeight(),
         dragHandle = { BottomSheetDefaults.DragHandle(color = colors.border.copy(alpha = 0.3f)) }
     ) {
         Column(
