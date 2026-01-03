@@ -102,14 +102,16 @@ class CoinsListViewModel(
                         iconUrl = coinItem.coin.iconUrl,
                         symbol = coinItem.coin.symbol,
                         formattedPrice = formatFiat(coinItem.price),
-                        formattedChange = formatFiat(coinItem.change, showDecimal = false),
+                        formattedChange = "${if (coinItem.change >= 0) "+" else ""}${String.format("%.2f", coinItem.change)}%",
                         isPositive = coinItem.change >= 0,
                         holdingsAmount = holding?.let { 
                             "${it.ownedAmountInUnit.formatCrypto()} ${coinItem.coin.symbol}"
                         },
                         holdingsValue = holding?.let { 
                             formatFiat(it.ownedAmountInFiat)
-                        }
+                        },
+                        sparklineData = coinItem.sparkline,
+                        marketCap = if (coinItem.marketCap > 0) formatFiat(coinItem.marketCap, showDecimal = false) else null
                     )
                 }
 

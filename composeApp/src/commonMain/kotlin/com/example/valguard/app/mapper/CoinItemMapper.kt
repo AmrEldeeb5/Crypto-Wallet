@@ -16,6 +16,8 @@ fun CoinItemDto.toCoinModel() = CoinModel(
     ),
     price = price?.toDoubleOrNull() ?: 0.0,
     change = change?.toDoubleOrNull() ?: 0.0,
+    sparkline = sparkline?.mapNotNull { it.toDoubleOrNull() } ?: emptyList(),
+    marketCap = marketCap?.toDoubleOrNull() ?: 0.0
 )
 
 fun CoinPriceHistoryDto.toPriceModel() = PriceModel(

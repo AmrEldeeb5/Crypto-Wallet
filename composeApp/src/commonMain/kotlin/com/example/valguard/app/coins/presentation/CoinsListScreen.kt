@@ -28,7 +28,7 @@ import com.example.valguard.app.coins.presentation.component.PerformanceChart
 import com.example.valguard.app.components.CoinCard
 import com.example.valguard.app.components.ConnectionStatusIndicator
 import com.example.valguard.app.components.ErrorState
-import com.example.valguard.app.components.LoadingPlaceholder
+import com.example.valguard.app.components.SkeletonCoinList
 import com.example.valguard.app.components.UiCoinItem
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoSpacing
@@ -110,11 +110,11 @@ private fun LoadingContent() {
             .fillMaxSize()
             .padding(spacing.md)
     ) {
-        repeat(5) {
-            LoadingPlaceholder(
-                modifier = Modifier.padding(vertical = spacing.xs)
-            )
-        }
+        // Use enhanced SkeletonCoinList with accessibility and performance cap
+        SkeletonCoinList(
+            itemCount = 6,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

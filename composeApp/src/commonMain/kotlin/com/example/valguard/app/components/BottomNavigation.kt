@@ -159,8 +159,8 @@ private fun BottomNavItemView(
         Modifier.background(
             brush = Brush.horizontalGradient(
                 colors = listOf(
-                    colors.accentBlue500,
-                    colors.accentPurple500
+                    colors.accentBlue500.copy(alpha = 0.85f),  // Reduced from 1.0 to 0.85
+                    colors.accentPurple500.copy(alpha = 0.85f)  // Reduced from 1.0 to 0.85
                 )
             ),
             shape = shape

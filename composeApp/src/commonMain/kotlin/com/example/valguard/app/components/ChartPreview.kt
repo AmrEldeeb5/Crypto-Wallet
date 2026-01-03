@@ -42,6 +42,7 @@ import kotlin.random.Random
 fun ChartPreview(
     isPositive: Boolean,
     modifier: Modifier = Modifier,
+    data: List<Double> = emptyList(),
     seed: Int = 0
 ) {
     val colors = LocalCryptoColors.current
@@ -62,9 +63,13 @@ fun ChartPreview(
         )
     }
     
-    // Generate consistent data points based on seed
-    val dataPoints = remember(seed, isPositive) {
-        generateChartData(seed, isPositive)
+    // Use actual data if available, otherwise generate consistent data points based on seed (fallback)
+    val dataPoints = remember(data, seed, isPositive) {
+        if (data.isNotEmpty()) {
+            data.map { it.toFloat() }
+        } else {
+            generateChartData(seed, isPositive)
+        }
     }
     
     Canvas(modifier = modifier.fillMaxSize()) {

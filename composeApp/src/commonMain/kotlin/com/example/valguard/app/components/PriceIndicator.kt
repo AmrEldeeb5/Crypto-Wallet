@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import valguard.composeapp.generated.resources.Res
 import valguard.composeapp.generated.resources.solar__course_down_outline
 import valguard.composeapp.generated.resources.solar__course_up_outline
@@ -86,11 +87,11 @@ fun PriceIndicator(
             }
             
             if (iconRes != null) {
-                androidx.compose.material3.Icon(
+                Icon(
                     painter = org.jetbrains.compose.resources.painterResource(iconRes),
                     contentDescription = null,
                     tint = animatedColor,
-                    modifier = androidx.compose.foundation.layout.size(16.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }

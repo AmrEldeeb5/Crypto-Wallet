@@ -495,6 +495,8 @@ private fun UiCoinListItem.toUiCoinItem(watchlistIds: List<String>): UiCoinItem 
         formattedChange = formattedChange,
         isPositive = isPositive,
         priceDirection = priceDirection,
+        sparklineData = sparklineData,
+        marketCap = marketCap,
         isInWatchlist = id in watchlistIds
     )
 }

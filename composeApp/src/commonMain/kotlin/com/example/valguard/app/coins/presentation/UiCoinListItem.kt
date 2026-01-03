@@ -12,5 +12,7 @@ data class UiCoinListItem(
     val isPositive: Boolean,
     val priceDirection: PriceDirection = PriceDirection.UNCHANGED,
     val holdingsAmount: String? = null,
-    val holdingsValue: String? = null
+    val holdingsValue: String? = null,
+    val sparklineData: List<Double> = emptyList(),
+    val marketCap: String? = null
 )

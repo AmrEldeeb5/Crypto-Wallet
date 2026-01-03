@@ -25,8 +25,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
+import valguard.composeapp.generated.resources.solar__alt_arrow_left_outline
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +48,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,6 +75,7 @@ import com.example.valguard.theme.LocalCryptoSpacing
 import org.koin.compose.viewmodel.koinViewModel
 import org.jetbrains.compose.resources.painterResource
 import valguard.composeapp.generated.resources.Res
+import valguard.composeapp.generated.resources.material_symbols__notifications_outline
 import valguard.composeapp.generated.resources.solar__bookmark_bold
 import valguard.composeapp.generated.resources.solar__bookmark_linear
 import kotlin.math.abs
@@ -185,7 +189,7 @@ private fun CoinDetailTopBar(
             modifier = Modifier.size(44.dp)
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                painter = painterResource(Res.drawable.solar__alt_arrow_left_outline),
                 contentDescription = "Back",
                 tint = colors.textPrimary,
                 modifier = Modifier.size(24.dp)
@@ -412,7 +416,12 @@ private fun PriceDisplayCard(
             ) {
                 when (chartState) {
                     is UiState.Loading -> {
-                        Box(contentAlignment = Alignment.Center) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.semantics { 
+                                contentDescription = "Loading price chart" 
+                            }
+                        ) {
                             SkeletonBox(
                                 modifier = Modifier.fillMaxSize(),
                                 shape = RoundedCornerShape(8.dp)
@@ -774,7 +783,7 @@ private fun PriceAlertButton(onClick: () -> Unit) {
         )
     ) {
         Icon(
-            imageVector = Icons.Default.Notifications,
+            painter = painterResource(Res.drawable.material_symbols__notifications_outline),
             contentDescription = null,
             tint = colors.textSecondary,
             modifier = Modifier.size(18.dp)
@@ -1005,6 +1014,15 @@ private fun CoinDetailLoadingContent() {
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = spacing.md)
+            .semantics { contentDescription = "Loading coin details" }
+            .pointerInput(Unit) {
+                // Block interactions during loading
+                awaitPointerEventScope {
+                    while (true) {
+                        awaitPointerEvent()
+                    }
+                }
+            }
     ) {
         // Integrated Card Skeleton (Matches new layout)
         Box(

@@ -41,7 +41,7 @@ class CompareViewModel(
     }
     
     private fun loadSavedComparisons() {
-        _state.update { it.copy(savedComparisons = UiState.Loading) }
+        _state.update { it.copy(savedComparisons = UiState.Loading.Initial) }
         
         viewModelScope.launch {
             comparisonRepository.getAllComparisons()
@@ -51,7 +51,7 @@ class CompareViewModel(
                 .collect { comparisons ->
                     _state.update {
                         it.copy(
-                            savedComparisons = if (comparisons.isEmpty()) UiState.Empty else UiState.Success(comparisons)
+                            savedComparisons = if (comparisons.isEmpty()) UiState.Empty() else UiState.Success(comparisons)
                         )
                     }
                 }

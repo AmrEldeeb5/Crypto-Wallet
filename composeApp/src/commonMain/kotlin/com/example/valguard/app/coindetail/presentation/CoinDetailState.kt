@@ -8,7 +8,7 @@ import com.example.valguard.app.core.util.UiState
 
 data class CoinDetailState(
     val coinId: String = "",
-    val coinData: UiState<CoinDetailData> = UiState.Loading,
+    val coinData: UiState<CoinDetailData> = UiState.Loading.Initial,
     val chartData: Map<ChartTimeframe, UiState<List<ChartPoint>>> = emptyMap(),
     val holdings: CoinHoldings? = null,
     val selectedTimeframe: ChartTimeframe = ChartTimeframe.DAY_1,
@@ -19,7 +19,7 @@ data class CoinDetailState(
     val hasHoldings: Boolean get() = holdings != null && holdings.amountOwned > 0
     
     val currentChartState: UiState<List<ChartPoint>>
-        get() = chartData[selectedTimeframe] ?: UiState.Loading
+        get() = chartData[selectedTimeframe] ?: UiState.Loading.Initial
 }
 
 sealed class CoinDetailEvent {

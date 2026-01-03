@@ -321,7 +321,9 @@ fun EnableNotificationsToggle(
                 Column {
                     Text(
                         text = "Enable Notifications",
-                        style = typography.titleSmall,
+                        style = typography.bodySmall.copy(
+                            fontFamily = bebasNeueFontFamily()
+                        ),
                         fontWeight = FontWeight.SemiBold,
                         color = if (enabled) Color.White else colors.textPrimary
                     )

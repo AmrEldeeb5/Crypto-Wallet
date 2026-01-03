@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
+import com.example.valguard.theme.bebasNeueFontFamily
 
 /**
  * Primary action button for onboarding navigation.
@@ -110,7 +111,9 @@ fun OnboardingButton(
         ) {
             Text(
                 text = buttonText,
-                style = typography.labelLarge,
+                style = typography.titleMedium.copy(
+                    fontFamily = bebasNeueFontFamily()
+                ),
                 color = textColor
             )
             Icon(

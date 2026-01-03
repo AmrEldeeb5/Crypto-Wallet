@@ -5,7 +5,7 @@ import com.example.valguard.app.dca.domain.DCAFrequency
 import com.example.valguard.app.dca.domain.DCASchedule
 
 data class DCAState(
-    val schedules: UiState<List<DCASchedule>> = UiState.Loading,
+    val schedules: UiState<List<DCASchedule>> = UiState.Loading.Initial,
     val totalInvested: Double = 0.0,
     val activeScheduleCount: Int = 0,
     val showCoinSelector: Boolean = false,

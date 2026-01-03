@@ -7,7 +7,7 @@ data class CompareState(
     val coin1: CoinSlot? = null,
     val coin2: CoinSlot? = null,
     val comparisonData: ComparisonData? = null,
-    val savedComparisons: UiState<List<SavedComparison>> = UiState.Loading,
+    val savedComparisons: UiState<List<SavedComparison>> = UiState.Loading.Initial,
     val showCoinSelector: CoinSelectorTarget? = null,
     val coinSearchQuery: String = "",
     val isLoading: Boolean = false,

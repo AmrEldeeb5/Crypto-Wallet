@@ -67,11 +67,21 @@ class CoinDetailViewModel(
     }
     
     private fun loadCoin(coinId: String, isRefresh: Boolean = false) {
-        // Set Loading state - but keep existing data if refreshing
+        // Set Loading state - use Refreshing if we have data, Initial otherwise
+        // Reset chart data when loading a new coin to ensure skeleton is shown
+        val isNewCoin = coinId != _state.value.coinId
         _state.update { 
             it.copy(
-                coinId = coinId, 
-                coinData = if (isRefresh && it.coinData is UiState.Success) it.coinData else UiState.Loading
+                coinId = coinId,
+                // Reset chart data for new coin to show skeleton
+                chartData = if (isNewCoin) emptyMap() else it.chartData,
+                coinData = if (isRefresh && it.coinData is UiState.Success) {
+                    UiState.Loading.Refreshing
+                } else if (it.coinData is UiState.Success && !isNewCoin) {
+                    it.coinData // Keep existing data during refresh
+                } else {
+                    UiState.Loading.Initial
+                }
             ) 
         }
         
@@ -140,8 +150,9 @@ class CoinDetailViewModel(
     
     private fun fetchPriceHistory(coinId: String, timeframe: ChartTimeframe) {
         viewModelScope.launch {
+            // Use Initial loading for chart data
             _state.update { 
-                it.copy(chartData = it.chartData + (timeframe to UiState.Loading))
+                it.copy(chartData = it.chartData + (timeframe to UiState.Loading.Initial))
             }
             
             runCatching {
@@ -161,7 +172,7 @@ class CoinDetailViewModel(
                         _state.update { 
                             it.copy(
                                 chartData = it.chartData + (timeframe to if (chartPoints.isEmpty()) {
-                                    UiState.Empty
+                                    UiState.Empty()
                                 } else {
                                     UiState.Success(chartPoints)
                                 })
@@ -220,11 +231,20 @@ class CoinDetailViewModel(
     
 
     private fun selectTimeframe(timeframe: ChartTimeframe) {
-        _state.update { it.copy(selectedTimeframe = timeframe) }
         val currentState = _state.value.chartData[timeframe]
         // Allow re-fetch if no data exists OR if previous attempt failed
+        // Set to Loading immediately when re-fetching to show skeleton
         if (currentState == null || currentState is UiState.Error) {
+            _state.update { 
+                it.copy(
+                    selectedTimeframe = timeframe,
+                    // Set to Loading immediately to show skeleton while fetching
+                    chartData = it.chartData + (timeframe to UiState.Loading.Initial)
+                )
+            }
             fetchPriceHistory(_state.value.coinId, timeframe)
+        } else {
+            _state.update { it.copy(selectedTimeframe = timeframe) }
         }
     }
     

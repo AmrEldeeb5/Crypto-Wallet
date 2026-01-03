@@ -7,4 +7,6 @@ data class CoinModel(
     val coin: Coin,
     val price: Double,
     val change: Double,
+    val sparkline: List<Double> = emptyList(),
+    val marketCap: Double = 0.0
 )

@@ -53,11 +53,8 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.valguard.app.onboarding.domain.OnboardingCoin
-import com.example.valguard.app.onboarding.domain.popularCoins
 import com.example.valguard.theme.AppTheme
-import com.example.valguard.theme.CoinRoutineTheme
 import com.example.valguard.theme.LocalCryptoAccessibility
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
@@ -176,18 +173,20 @@ fun CoinSelectionCard(
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(dimensions.smallSpacing))
-            
+
             // Coin symbol
             Text(
                 text = coin.symbol,
-                style = typography.titleSmall,
+                style = typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected) Color.White else colors.textPrimary,
                 modifier = Modifier.align(Alignment.Start)
             )
-            
+
+            Spacer(modifier = Modifier.height(dimensions.smallSpacing / 2))
+
             // Coin name
             Text(
                 text = coin.name,

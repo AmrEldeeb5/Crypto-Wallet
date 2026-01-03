@@ -16,8 +16,6 @@
 package com.example.valguard.app.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -30,6 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.valguard.theme.LocalCryptoColors
+import org.jetbrains.compose.resources.painterResource
+import valguard.composeapp.generated.resources.Res
+import valguard.composeapp.generated.resources.solar__alt_arrow_left_outline
 
 /**
  * Header with back navigation for secondary screens.
@@ -65,7 +66,7 @@ fun ScreenHeader(
                 .semantics { contentDescription = "Go back" }
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                painter = painterResource(Res.drawable.solar__alt_arrow_left_outline),
                 contentDescription = "Back",
                 tint = colors.textPrimary
             )

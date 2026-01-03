@@ -163,6 +163,7 @@ fun ExpandableCoinCard(
             ) {
                 ChartPreview(
                     isPositive = coin.isPositive,
+                    data = coin.sparklineData,
                     seed = coin.id.hashCode()
                 )
             }
@@ -205,8 +206,8 @@ fun ExpandableCoinCard(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = coin.formattedChange,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
                         color = changeColor
                     )
                 }

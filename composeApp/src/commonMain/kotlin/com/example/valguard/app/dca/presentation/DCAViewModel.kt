@@ -48,7 +48,7 @@ class DCAViewModel(
     }
     
     private fun loadSchedules() {
-        _state.update { it.copy(schedules = UiState.Loading) }
+        _state.update { it.copy(schedules = UiState.Loading.Initial) }
         
         viewModelScope.launch {
             dcaRepository.getAllSchedules()
@@ -61,7 +61,7 @@ class DCAViewModel(
                     
                     _state.update {
                         it.copy(
-                            schedules = if (schedules.isEmpty()) UiState.Empty else UiState.Success(schedules),
+                            schedules = if (schedules.isEmpty()) UiState.Empty() else UiState.Success(schedules),
                             activeScheduleCount = activeCount,
                             totalInvested = totalInvested
                         )

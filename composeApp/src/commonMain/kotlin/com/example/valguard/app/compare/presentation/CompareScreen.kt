@@ -314,7 +314,7 @@ private fun CoinSelectorCard(
     )
     
     val glowAlpha by animateFloatAsState(
-        targetValue = if (isSelected) 0.15f else 0.05f,
+        targetValue = if (isSelected) 0.2f else 0.05f,
         animationSpec = tween(500),
         label = "glowAlpha"
     )
@@ -322,6 +322,15 @@ private fun CoinSelectorCard(
     Box(
         modifier = modifier
             .scale(scale)
+            .then(
+                if (isSelected) {
+                    Modifier.shadow(
+                        elevation = 8.dp,
+                        shape = shape,
+                        spotColor = borderColor.copy(alpha = 0.3f)
+                    )
+                } else Modifier
+            )
             .clip(shape)
             .background(
                 Brush.verticalGradient(
@@ -332,12 +341,12 @@ private fun CoinSelectorCard(
                 )
             )
             .border(
-                width = 1.dp,
-                color = borderColor.copy(alpha = glowAlpha * 3),
+                width = if (isSelected) 1.5.dp else 1.dp,
+                color = if (isSelected) borderColor.copy(alpha = 0.6f) else borderColor.copy(alpha = 0.15f),
                 shape = shape
             )
             .clickable(onClick = onClick)
-            .padding(12.dp),
+            .padding(16.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         if (coin != null) {
@@ -368,7 +377,7 @@ private fun CoinSelectorCard(
                     Text(
                         text = coin.name,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         color = colors.textPrimary
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -486,13 +495,24 @@ private fun ComparisonTable(
             )
             
             metrics.forEachIndexed { index, (label, content) ->
+                // Add distinctive divider ABOVE Current Price row
+                if (index == 0) {
+                    // No divider above the first row
+                } 
+                
                 ComparisonRow(label = label, content = content)
 
+                // Add dividers between rows, with special treatment for Current Price
                 if (index < metrics.size - 1) {
                     HorizontalDivider(
-                        color = colors.border.copy(alpha = 0.05f),
-                        thickness = 1.dp,
-                        modifier = Modifier.padding(vertical = spacing.md)
+                        color = if (index == 0) {
+                            // More visible divider AFTER Current Price to emphasize it
+                            colors.border.copy(alpha = 0.15f)
+                        } else {
+                            colors.border.copy(alpha = 0.05f)
+                        },
+                        thickness = if (index == 0) 1.5.dp else 1.dp,
+                        modifier = Modifier.padding(vertical = if (index == 0) spacing.md * 1.2f else spacing.md)
                     )
                 }
             }
@@ -597,9 +617,9 @@ private fun generateVerdict(
         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
             append(liquidityLeader.uppercase())
         }
-        append(" leads in ")
+        append(" dominates the ")
         withStyle(SpanStyle(color = androidx.compose.ui.graphics.Color(0xFF4CAF50))) { // Greenish
-            append("market dominance")
+            append("market")
         }
         append(", while ")
         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -682,12 +702,13 @@ private fun MetricValueCell(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .then(
-                if (isWinner) {
+                // Apply pill treatment to all rank cells and winners
+                if (isWinner || isRank) {
                     Modifier
-                        .background(colors.accentBlue400.copy(alpha = 0.12f))
+                        .background(colors.accentBlue400.copy(alpha = if (isWinner) 0.12f else 0.08f))
                         .border(
                             1.dp,
-                            colors.accentBlue400.copy(alpha = 0.2f),
+                            colors.accentBlue400.copy(alpha = if (isWinner) 0.2f else 0.12f),
                             RoundedCornerShape(8.dp)
                         )
                 } else Modifier
@@ -716,6 +737,16 @@ private fun MetricValueCell(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            // Crown icon for #1 rank - subtle, no animation
+            if (isRank && value == "#1") {
+                Text(
+                    text = "👑",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyLarge,
@@ -724,7 +755,7 @@ private fun MetricValueCell(
                 textAlign = TextAlign.Center
             )
             
-            if (isWinner) {
+            if (isWinner && !isRank) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     imageVector = Icons.Default.CheckCircle, // "Leading" badge
@@ -732,9 +763,6 @@ private fun MetricValueCell(
                     tint = colors.accentBlue400,
                     modifier = Modifier.size(14.dp)
                 )
-            } else if (isRank) {
-                // For loser in rank (or just non-winner), show arrow maybe? 
-                // Keeping it simple as per "Leading badge" request for winner.
             }
         }
     }

@@ -20,5 +20,7 @@ data class CoinItemDto(
     val iconUrl: String? = null,
     val price: String? = null,
     val rank: Int,
-    val change: String? = null
+    val change: String? = null,
+    val sparkline: List<String>? = null,
+    val marketCap: String? = null
 )

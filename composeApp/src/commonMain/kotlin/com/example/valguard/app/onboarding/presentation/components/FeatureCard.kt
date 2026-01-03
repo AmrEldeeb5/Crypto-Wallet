@@ -99,51 +99,62 @@ fun FeatureCard(
         animationSpec = tween(durationMillis = if (reduceMotion) 0 else 300)
     )
     
-    // Plain layout - no container, compact for grid
-    Column(
+    // Transparent card with gradient border
+    Box(
         modifier = modifier
             .alpha(alpha)
-            .padding(dimensions.cardPadding),
-        horizontalAlignment = Alignment.Start
-    ) {
-        // Icon with softened gradient background
-        Box(
-            modifier = Modifier
-                .size(dimensions.coinIconSize * 0.85f)
-                .clip(RoundedCornerShape(dimensions.cardCornerRadius * 0.75f))
-                .background(
-                    Brush.linearGradient(
-                        feature.gradientColors.map { it.copy(alpha = 0.7f) }
-                    )
+            .clip(RoundedCornerShape(24.dp))
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = feature.gradientColors.map { it.copy(alpha = 0.5f) }
                 ),
-            contentAlignment = Alignment.Center
+                shape = RoundedCornerShape(24.dp)
+            )
+            .padding(dimensions.cardPadding)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.Start
         ) {
-            Icon(
-                painter = painterResource(feature.iconType.resource),
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.9f),
-                modifier = Modifier.size(dimensions.coinIconSize * 0.5f)
+            // Icon with softened gradient background
+            Box(
+                modifier = Modifier
+                    .size(dimensions.coinIconSize * 0.85f)
+                    .clip(RoundedCornerShape(dimensions.cardCornerRadius * 0.75f))
+                    .background(
+                        Brush.linearGradient(
+                            feature.gradientColors.map { it.copy(alpha = 0.7f) }
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(feature.iconType.resource),
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.9f),
+                    modifier = Modifier.size(dimensions.coinIconSize * 0.5f)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(dimensions.itemSpacing))
+            
+            // Title
+            Text(
+                text = feature.title,
+                style = typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = colors.textPrimary
+            )
+            
+            Spacer(modifier = Modifier.height(dimensions.smallSpacing / 2))
+            
+            // Description
+            Text(
+                text = feature.description,
+                style = typography.bodySmall,
+                color = colors.textTertiary.copy(alpha = 0.8f)
             )
         }
-        
-        Spacer(modifier = Modifier.height(dimensions.itemSpacing))
-        
-        // Title
-        Text(
-            text = feature.title,
-            style = typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.textPrimary
-        )
-        
-        Spacer(modifier = Modifier.height(dimensions.smallSpacing / 2))
-        
-        // Description
-        Text(
-            text = feature.description,
-            style = typography.bodySmall,
-            color = colors.textTertiary.copy(alpha = 0.8f)
-        )
     }
 }
 

@@ -164,6 +164,21 @@ class OnboardingViewModel(
         }
     }
     
+    /**
+     * Directly syncs the ViewModel step to match the pager.
+     * Used when user swipes the pager - animation already happened, just update state.
+     * 
+     * @param step The step index to sync to
+     */
+    fun syncToStep(step: Int) {
+        if (step in 0..3 && step != _state.value.currentStep && !_state.value.isTransitioning) {
+            _state.update { it.copy(currentStep = step) }
+            viewModelScope.launch {
+                saveState()
+            }
+        }
+    }
+    
     private fun showSkipConfirmation() {
         _state.update { it.copy(showSkipDialog = true) }
     }

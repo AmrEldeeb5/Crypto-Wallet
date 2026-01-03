@@ -9,8 +9,10 @@
  * - Customizable title and description
  * - Optional action button for user guidance
  * - Accessibility support
+ * - EmptyReason-based contextual messaging
  *
  * @see ErrorState for error message display
+ * @see EmptyReason for contextual empty state reasons
  */
 package com.example.valguard.app.components
 
@@ -25,13 +27,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -46,12 +48,26 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.valguard.app.core.util.EmptyReason
 import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoColors
 import androidx.compose.foundation.layout.fillMaxSize
 import org.jetbrains.compose.resources.painterResource
 import valguard.composeapp.generated.resources.Res
 import valguard.composeapp.generated.resources.solar__chart_square_outline
+import valguard.composeapp.generated.resources.solar__alt_arrow_right_outline
+
+/**
+ * Returns contextual title and description based on EmptyReason.
+ */
+private fun getEmptyReasonContent(reason: EmptyReason): Pair<String, String> {
+    return when (reason) {
+        EmptyReason.NoResults -> "No Results" to "Try adjusting your search or filters."
+        EmptyReason.NoHoldings -> "No Holdings Yet" to "Start building your portfolio by adding some coins."
+        EmptyReason.NotSupported -> "Not Available" to "This feature is not supported for this item."
+        EmptyReason.NoData -> "No Data" to "There's nothing to show here yet."
+    }
+}
 
 /**
  * Empty state component for when no content is available.
@@ -64,6 +80,7 @@ import valguard.composeapp.generated.resources.solar__chart_square_outline
  * @param actionLabel Optional button label (null hides button)
  * @param onAction Optional callback for button click (null hides button)
  * @param modifier Optional modifier for the component
+ * @param reason Optional EmptyReason for contextual messaging (overrides title/description if provided)
  */
 @Composable
 fun EmptyState(
@@ -71,8 +88,15 @@ fun EmptyState(
     description: String,
     actionLabel: String?,
     onAction: (() -> Unit)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    reason: EmptyReason? = null
 ) {
+    // Use reason-based content if provided, otherwise use explicit title/description
+    val (displayTitle, displayDescription) = if (reason != null) {
+        getEmptyReasonContent(reason)
+    } else {
+        title to description
+    }
     val colors = LocalCryptoColors.current
     val dimensions = AppTheme.dimensions
     
@@ -95,7 +119,7 @@ fun EmptyState(
             .fillMaxWidth()
             .padding(dimensions.screenPadding)
             .semantics {
-                contentDescription = "$title. $description"
+                contentDescription = "$displayTitle. $displayDescription"
             }
     ) {
         // Empty state icon with pulse animation
@@ -117,7 +141,7 @@ fun EmptyState(
         
         // Title
         Text(
-            text = title,
+            text = displayTitle,
             style = MaterialTheme.typography.titleLarge,
             color = colors.textPrimary,
             textAlign = TextAlign.Center
@@ -127,7 +151,7 @@ fun EmptyState(
         
         // Description
         Text(
-            text = description,
+            text = displayDescription,
             style = MaterialTheme.typography.bodyMedium,
             color = colors.textSecondary,
             textAlign = TextAlign.Center
@@ -154,7 +178,7 @@ fun EmptyState(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
-                        imageVector = Icons.Default.ArrowForward,
+                        painter = painterResource(Res.drawable.solar__alt_arrow_right_outline),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )

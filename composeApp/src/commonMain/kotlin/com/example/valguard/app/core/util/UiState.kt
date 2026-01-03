@@ -1,7 +1,29 @@
 package com.example.valguard.app.core.util
 
+/**
+ * Represents the reason for an empty state.
+ * - NoResults: User search/filter returned nothing
+ * - NoHoldings: User has no portfolio holdings
+ * - NotSupported: Feature not available for this item
+ * - NoData: API returned empty but feature is supported
+ */
+enum class EmptyReason {
+    NoResults,
+    NoHoldings,
+    NotSupported,
+    NoData
+}
+
 sealed class UiState<out T> {
-    data object Loading : UiState<Nothing>()
+    /**
+     * Semantic loading states to distinguish skeleton vs cached content scenarios.
+     * - Initial: First load with no cache - show skeleton
+     * - Refreshing: Has cached data - show content with refresh indicator
+     */
+    sealed class Loading : UiState<Nothing>() {
+        data object Initial : Loading()
+        data object Refreshing : Loading()
+    }
     
     data class Success<T>(val data: T) : UiState<T>()
     
@@ -10,9 +32,13 @@ sealed class UiState<out T> {
         val retry: (() -> Unit)? = null
     ) : UiState<Nothing>()
     
-    data object Empty : UiState<Nothing>()
+    data class Empty(val reason: EmptyReason = EmptyReason.NoData) : UiState<Nothing>()
     
     val isLoading: Boolean get() = this is Loading
+    
+    val isInitialLoading: Boolean get() = this is Loading.Initial
+    
+    val isRefreshing: Boolean get() = this is Loading.Refreshing
     
     val isSuccess: Boolean get() = this is Success
     
@@ -25,13 +51,22 @@ sealed class UiState<out T> {
     fun getOrDefault(default: @UnsafeVariance T): T = getOrNull() ?: default
     
     fun errorOrNull(): String? = (this as? Error)?.message
+    
+    companion object {
+        /** Convenience for initial loading state */
+        val InitialLoading: Loading = Loading.Initial
+        
+        /** Convenience for refreshing state */
+        val RefreshingLoading: Loading = Loading.Refreshing
+    }
 }
 
 inline fun <T, R> UiState<T>.map(transform: (T) -> R): UiState<R> = when (this) {
-    is UiState.Loading -> UiState.Loading
+    is UiState.Loading.Initial -> UiState.Loading.Initial
+    is UiState.Loading.Refreshing -> UiState.Loading.Refreshing
     is UiState.Success -> UiState.Success(transform(data))
     is UiState.Error -> UiState.Error(message, retry)
-    is UiState.Empty -> UiState.Empty
+    is UiState.Empty -> UiState.Empty(reason)
 }
 
 inline fun <T> UiState<T>.onSuccess(block: (T) -> Unit): UiState<T> {
@@ -49,19 +84,29 @@ inline fun <T> UiState<T>.onLoading(block: () -> Unit): UiState<T> {
     return this
 }
 
-inline fun <T> UiState<T>.onEmpty(block: () -> Unit): UiState<T> {
-    if (this is UiState.Empty) block()
+inline fun <T> UiState<T>.onInitialLoading(block: () -> Unit): UiState<T> {
+    if (this is UiState.Loading.Initial) block()
     return this
 }
 
-fun <T> T?.toUiState(): UiState<T> = if (this != null) UiState.Success(this) else UiState.Empty
+inline fun <T> UiState<T>.onRefreshing(block: () -> Unit): UiState<T> {
+    if (this is UiState.Loading.Refreshing) block()
+    return this
+}
+
+inline fun <T> UiState<T>.onEmpty(block: (EmptyReason) -> Unit): UiState<T> {
+    if (this is UiState.Empty) block(reason)
+    return this
+}
+
+fun <T> T?.toUiState(): UiState<T> = if (this != null) UiState.Success(this) else UiState.Empty()
 
 fun <T> Result<T>.toUiState(
     emptyCheck: (T) -> Boolean = { false },
     errorMessage: (Throwable) -> String = { it.message ?: "Unknown error" }
 ): UiState<T> = fold(
     onSuccess = { data ->
-        if (emptyCheck(data)) UiState.Empty else UiState.Success(data)
+        if (emptyCheck(data)) UiState.Empty() else UiState.Success(data)
     },
     onFailure = { error ->
         UiState.Error(errorMessage(error))
@@ -69,4 +114,4 @@ fun <T> Result<T>.toUiState(
 )
 
 fun <T> List<T>.toUiState(): UiState<List<T>> = 
-    if (isEmpty()) UiState.Empty else UiState.Success(this)
+    if (isEmpty()) UiState.Empty(EmptyReason.NoResults) else UiState.Success(this)
