@@ -32,14 +32,14 @@ interface DCAScheduleDao {
     @Query("SELECT * FROM dca_schedules WHERE coinId = :coinId")
     suspend fun getSchedulesByCoinId(coinId: String): List<DCAScheduleEntity>
     
-    @Query("SELECT * FROM dca_schedules WHERE isActive = 1 ORDER BY nextExecutionDate ASC")
+    @Query("SELECT * FROM dca_schedules WHERE isActive = 1 ORDER BY createdAt DESC")
     fun getActiveSchedules(): Flow<List<DCAScheduleEntity>>
     
     @Query("UPDATE dca_schedules SET isActive = :isActive WHERE id = :scheduleId")
     suspend fun setScheduleActive(scheduleId: Long, isActive: Boolean)
     
-    @Query("UPDATE dca_schedules SET nextExecutionDate = :nextDate, totalInvested = totalInvested + :amount, executionCount = executionCount + 1 WHERE id = :scheduleId")
-    suspend fun updateAfterExecution(scheduleId: Long, nextDate: Long, amount: Double)
+    @Query("UPDATE dca_schedules SET lastExecutedAt = :lastExecutedAt, totalInvested = totalInvested + :amount, executionCount = executionCount + 1 WHERE id = :scheduleId")
+    suspend fun updateAfterExecution(scheduleId: Long, lastExecutedAt: Long, amount: Double)
     
     @Query("SELECT COUNT(*) FROM dca_schedules")
     suspend fun getScheduleCount(): Int

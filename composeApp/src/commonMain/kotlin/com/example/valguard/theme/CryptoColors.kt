@@ -99,6 +99,7 @@ val Yellow400 = Color(0xFFFBBF24)
  * @property profit Color indicating positive price changes or gains (green)
  * @property loss Color indicating negative price changes or losses (red)
  * @property neutral Color for unchanged/neutral states
+ * @property neutralMovement Color for neutral price movement (stablecoins or minimal changes)
  * @property cardBackground Background color for card components
  * @property cardBackgroundElevated Background for elevated/highlighted cards
  * @property cardBorder Border color for card components
@@ -134,6 +135,7 @@ data class CryptoColors(
     val profit: Color,
     val loss: Color,
     val neutral: Color,
+    val neutralMovement: Color,
     
     // Card and surface colors
     val cardBackground: Color,
@@ -201,6 +203,7 @@ val DarkCryptoColors = CryptoColors(
     profit = Color(0xFF34D399),               // emerald-400
     loss = Color(0xFFFB7185),                 // rose-400
     neutral = Color(0xFF94A3B8),              // slate-400
+    neutralMovement = Color(0xFF94A3B8).copy(alpha = 0.6f), // slate-400 with 60% opacity
     
     // Cards - Slate 800 with transparency
     cardBackground = Color(0xFF1E293B),       // slate-800

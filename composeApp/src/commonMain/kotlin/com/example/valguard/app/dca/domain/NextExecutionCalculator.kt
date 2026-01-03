@@ -76,8 +76,14 @@ object NextExecutionCalculator {
         return when {
             daysUntil == 0 -> "Today"
             daysUntil == 1 -> "Tomorrow"
-            daysUntil < 7 -> date.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }
-            else -> "${date.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }} ${date.dayOfMonth}"
+            daysUntil in 2..6 -> {
+                val dayOfWeek = date.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }
+                "In $daysUntil days · $dayOfWeek"
+            }
+            else -> {
+                val monthDay = "${date.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }} ${date.dayOfMonth}"
+                "In $daysUntil days · $monthDay"
+            }
         }
     }
 }

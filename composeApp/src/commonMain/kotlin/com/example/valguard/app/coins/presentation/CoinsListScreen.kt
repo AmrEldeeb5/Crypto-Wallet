@@ -210,6 +210,8 @@ fun CoinChartDialog(
                     nodes = uiChartState.sparkLine,
                     profitColor = colors.profit,
                     lossColor = colors.loss,
+                    symbol = uiChartState.coinSymbol,
+                    changePercent = uiChartState.changePercent
                 )
             }
         },

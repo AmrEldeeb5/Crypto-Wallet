@@ -27,8 +27,10 @@ class DCAViewModel(
     fun onEvent(event: DCAEvent) {
         when (event) {
             is DCAEvent.LoadSchedules -> loadSchedules()
-            is DCAEvent.ShowCreateDialog -> showCreateDialog()
-            is DCAEvent.HideCreateDialog -> hideCreateDialog()
+            is DCAEvent.ShowCoinSelector -> showCoinSelector()
+            is DCAEvent.HideCoinSelector -> hideCoinSelector()
+            is DCAEvent.ShowActionSheet -> showActionSheet(event.schedule)
+            is DCAEvent.HideActionSheet -> hideActionSheet()
             is DCAEvent.EditSchedule -> editSchedule(event.schedule)
             is DCAEvent.DeleteSchedule -> deleteSchedule(event.scheduleId)
             is DCAEvent.ToggleScheduleActive -> toggleScheduleActive(event.scheduleId, event.isActive)
@@ -38,7 +40,10 @@ class DCAViewModel(
             is DCAEvent.UpdateDayOfWeek -> updateDayOfWeek(event.day)
             is DCAEvent.UpdateDayOfMonth -> updateDayOfMonth(event.day)
             is DCAEvent.SaveSchedule -> saveSchedule()
+            is DCAEvent.CancelEdit -> hideCreateForm()
             is DCAEvent.Retry -> loadSchedules()
+            is DCAEvent.DismissUpgradePrompt -> dismissUpgradePrompt()
+            else -> {} // Skip legacy events
         }
     }
     
@@ -65,30 +70,40 @@ class DCAViewModel(
         }
     }
     
-    private fun showCreateDialog() {
+    private fun showCoinSelector() {
+        _state.update { it.copy(showCoinSelector = true) }
+    }
+    
+    private fun hideCoinSelector() {
+        _state.update { it.copy(showCoinSelector = false) }
+    }
+    
+    private fun showActionSheet(schedule: DCASchedule) {
         _state.update {
             it.copy(
-                showCreateDialog = true,
-                editingSchedule = null,
-                createFormState = DCACreateFormState()
+                showActionSheet = true,
+                selectedScheduleForAction = schedule
             )
         }
     }
     
-    private fun hideCreateDialog() {
+    private fun hideActionSheet() {
         _state.update {
             it.copy(
-                showCreateDialog = false,
-                editingSchedule = null,
-                createFormState = DCACreateFormState()
+                showActionSheet = false,
+                selectedScheduleForAction = null
             )
         }
+    }
+    
+    private fun dismissUpgradePrompt() {
+        _state.update { it.copy(showUpgradePrompt = false) }
     }
     
     private fun editSchedule(schedule: DCASchedule) {
         _state.update {
             it.copy(
-                showCreateDialog = true,
+                showActionSheet = false,
                 editingSchedule = schedule,
                 createFormState = DCACreateFormState(
                     selectedCoinId = schedule.coinId,
@@ -169,6 +184,16 @@ class DCAViewModel(
         val amount = formState.amount.toDoubleOrNull() ?: return
         val editingSchedule = _state.value.editingSchedule
         
+        // Check schedule limit (3 active schedules for free tier)
+        if (editingSchedule == null) { // Only check limit for new schedules
+            val activeCount = _state.value.activeScheduleCount
+            if (activeCount >= 3) {
+                // Show upgrade prompt
+                _state.update { it.copy(showUpgradePrompt = true) }
+                return
+            }
+        }
+        
         viewModelScope.launch {
             if (editingSchedule != null) {
                 val updatedSchedule = editingSchedule.copy(
@@ -195,7 +220,16 @@ class DCAViewModel(
                 )
             }
             
-            hideCreateDialog()
+            hideCreateForm()
+        }
+    }
+    
+    private fun hideCreateForm() {
+        _state.update {
+            it.copy(
+                editingSchedule = null,
+                createFormState = DCACreateFormState()
+            )
         }
     }
 }

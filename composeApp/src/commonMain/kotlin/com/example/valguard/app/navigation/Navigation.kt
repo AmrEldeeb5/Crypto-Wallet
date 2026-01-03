@@ -96,15 +96,6 @@ fun Navigation(
                 },
                 onCoinClick = { coinId ->
                     navController.navigate(Screens.CoinDetail(coinId))
-                },
-                onDCAClick = {
-                    navController.navigate(Screens.DCA)
-                },
-                onCompareClick = {
-                    navController.navigate(Screens.Compare)
-                },
-                onReferralClick = {
-                    navController.navigate(Screens.Referral)
                 }
             )
         }
@@ -173,49 +164,6 @@ fun Navigation(
                 onSellClick = { coinId ->
                     navController.navigate(Screens.Sell(coinId))
                 }
-            )
-        }
-        
-        // DCA Screen with slide transition
-        composable<Screens.DCA>(
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(ANIMATION_DURATION)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(ANIMATION_DURATION)
-                )
-            }
-        ) {
-            DCAScreen(
-                onBack = { navController.popBackStack() },
-                onNavigateToBuy = { coinId ->
-                    navController.navigate(Screens.Buy(coinId))
-                }
-            )
-        }
-        
-        // Compare Screen with slide transition
-        composable<Screens.Compare>(
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(ANIMATION_DURATION)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(ANIMATION_DURATION)
-                )
-            }
-        ) {
-            CompareScreen(
-                onBack = { navController.popBackStack() }
             )
         }
         

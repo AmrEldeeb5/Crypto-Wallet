@@ -128,7 +128,7 @@ fun OnboardingScreen(
     
     // Sync pager with ViewModel state - consistent 300ms easing
     LaunchedEffect(state.currentStep) {
-        if (pagerState.currentPage != state.currentStep && !state.isTransitioning) {
+        if (pagerState.currentPage != state.currentStep) {
             pagerState.animateScrollToPage(
                 page = state.currentStep,
                 animationSpec = tween(
@@ -139,10 +139,11 @@ fun OnboardingScreen(
         }
     }
     
-    // Sync ViewModel with pager swipes
+    // Sync ViewModel with pager swipes (only when settled)
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            if (page != state.currentStep) {
+        snapshotFlow { pagerState.isScrollInProgress to pagerState.currentPage }.collect { (isScrolling, page) ->
+            // Only sync when user stops scrolling and page is different
+            if (!isScrolling && page != state.currentStep && !state.isTransitioning) {
                 // User swiped to a different page
                 if (page > state.currentStep) {
                     // Swiped forward - check if can proceed

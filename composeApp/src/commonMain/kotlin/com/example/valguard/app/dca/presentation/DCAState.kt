@@ -8,10 +8,22 @@ data class DCAState(
     val schedules: UiState<List<DCASchedule>> = UiState.Loading,
     val totalInvested: Double = 0.0,
     val activeScheduleCount: Int = 0,
-    val showCreateDialog: Boolean = false,
+    val showCoinSelector: Boolean = false,
+    val showActionSheet: Boolean = false,
+    val selectedScheduleForAction: DCASchedule? = null,
     val editingSchedule: DCASchedule? = null,
-    val createFormState: DCACreateFormState = DCACreateFormState()
+    val createFormState: DCACreateFormState = DCACreateFormState(),
+    val creationStatus: CreationStatus = CreationStatus.Idle,
+    val showUpgradePrompt: Boolean = false
 )
+
+sealed class CreationStatus {
+    data object Idle : CreationStatus()
+    data object Validating : CreationStatus()
+    data object Submitting : CreationStatus()
+    data object Success : CreationStatus()
+    data class Error(val message: String) : CreationStatus()
+}
 
 data class DCACreateFormState(
     val selectedCoinId: String = "",
@@ -44,8 +56,10 @@ data class DCACreateFormState(
 
 sealed class DCAEvent {
     data object LoadSchedules : DCAEvent()
-    data object ShowCreateDialog : DCAEvent()
-    data object HideCreateDialog : DCAEvent()
+    data object ShowCoinSelector : DCAEvent()
+    data object HideCoinSelector : DCAEvent()
+    data class ShowActionSheet(val schedule: DCASchedule) : DCAEvent()
+    data object HideActionSheet : DCAEvent()
     data class EditSchedule(val schedule: DCASchedule) : DCAEvent()
     data class DeleteSchedule(val scheduleId: Long) : DCAEvent()
     data class ToggleScheduleActive(val scheduleId: Long, val isActive: Boolean) : DCAEvent()
@@ -55,5 +69,8 @@ sealed class DCAEvent {
     data class UpdateDayOfWeek(val day: Int) : DCAEvent()
     data class UpdateDayOfMonth(val day: Int) : DCAEvent()
     data object SaveSchedule : DCAEvent()
+    data object CancelEdit : DCAEvent()
     data object Retry : DCAEvent()
+    data object DismissUpgradePrompt : DCAEvent()
+    
 }

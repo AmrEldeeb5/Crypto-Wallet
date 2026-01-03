@@ -40,9 +40,11 @@ import com.example.valguard.theme.LocalCryptoColors
 /**
  * Main application header with branding and actions.
  *
- * Displays the Valguard logo/title with gradient styling,
+ * Displays contextual market information with dynamic stats,
  * along with alert notifications and optional menu access.
  *
+ * @param marketCount Total number of assets being tracked
+ * @param portfolioCount Number of assets in user's portfolio
  * @param alertCount Number of active alerts to show in badge (0 hides badge)
  * @param onAlertClick Callback when the alert bell is tapped
  * @param onMoreClick Optional callback for the more menu button (null hides button)
@@ -50,6 +52,8 @@ import com.example.valguard.theme.LocalCryptoColors
  */
 @Composable
 fun ValguardHeader(
+    marketCount: Int,
+    portfolioCount: Int,
     alertCount: Int,
     onAlertClick: () -> Unit,
     onMoreClick: (() -> Unit)? = null,
@@ -65,19 +69,21 @@ fun ValguardHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            // Gradient title
+            // Primary title - calm and personal
             Text(
-                text = "Valguard",
-                fontSize = 28.sp,
+                text = "Your Market",
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                style = androidx.compose.ui.text.TextStyle(
-                    brush = CryptoGradients.brandGradient()
-                )
+                color = colors.textPrimary
             )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            // Secondary subtitle - informational and factual
             Text(
-                text = "Track your crypto portfolio",
-                fontSize = 14.sp,
-                color = colors.textSecondary
+                text = "Tracking $marketCount assets · $portfolioCount in your portfolio",
+                fontSize = 13.sp,
+                color = colors.textSecondary.copy(alpha = 0.7f)
             )
         }
         

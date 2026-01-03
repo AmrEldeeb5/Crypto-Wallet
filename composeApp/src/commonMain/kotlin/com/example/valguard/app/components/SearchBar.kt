@@ -59,8 +59,8 @@ fun SearchBar(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .background(colors.cardBackground, shape)
-            .border(1.dp, colors.cardBorder, shape)
+            .background(colors.cardBackground.copy(alpha = 0.5f), shape)
+            .border(1.dp, colors.cardBorder.copy(alpha = 0.5f), shape)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

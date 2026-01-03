@@ -1,6 +1,7 @@
 package com.example.valguard.app.dca.domain
 
 import com.example.valguard.app.dca.data.local.DCAScheduleEntity
+import kotlinx.datetime.Clock
 
 data class DCASchedule(
     val id: Long = 0,
@@ -14,10 +15,20 @@ data class DCASchedule(
     val dayOfMonth: Int? = null,
     val isActive: Boolean = true,
     val createdAt: Long,
-    val nextExecutionDate: Long,
+    val lastExecutedAt: Long? = null,
     val totalInvested: Double = 0.0,
     val executionCount: Int = 0
 ) {
+    // Computed property - not stored in database
+    fun nextExecution(now: Long = Clock.System.now().toEpochMilliseconds()): Long {
+        return NextExecutionCalculator.calculateNextExecutionDate(
+            frequency = frequency,
+            dayOfWeek = dayOfWeek,
+            dayOfMonth = dayOfMonth,
+            fromDate = lastExecutedAt ?: createdAt
+        )
+    }
+    
     fun toEntity(): DCAScheduleEntity = DCAScheduleEntity(
         id = id,
         coinId = coinId,
@@ -30,7 +41,7 @@ data class DCASchedule(
         dayOfMonth = dayOfMonth,
         isActive = isActive,
         createdAt = createdAt,
-        nextExecutionDate = nextExecutionDate,
+        lastExecutedAt = lastExecutedAt,
         totalInvested = totalInvested,
         executionCount = executionCount
     )
@@ -48,7 +59,7 @@ data class DCASchedule(
             dayOfMonth = entity.dayOfMonth,
             isActive = entity.isActive,
             createdAt = entity.createdAt,
-            nextExecutionDate = entity.nextExecutionDate,
+            lastExecutedAt = entity.lastExecutedAt,
             totalInvested = entity.totalInvested,
             executionCount = entity.executionCount
         )

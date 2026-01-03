@@ -17,12 +17,28 @@ fun PerformanceChart(
     nodes: List<Double>,
     profitColor: Color,
     lossColor: Color,
+    symbol: String = "",
+    changePercent: Double = 0.0
 ) {
     if (nodes.isEmpty()) return
 
     val max = nodes.maxOrNull() ?: return
     val min = nodes.minOrNull() ?: return
-    val lineColor = if (nodes.last() > nodes.first()) profitColor else lossColor
+    
+    // Determine if price went up or down
+    val isPositive = nodes.last() > nodes.first()
+    
+    // Use sparkline color logic if symbol is provided
+    val lineColor = if (symbol.isNotEmpty()) {
+        com.example.valguard.app.components.getSparklineColor(
+            symbol = symbol,
+            changePercent = changePercent,
+            isPositive = isPositive
+        )
+    } else {
+        // Fallback to original logic if no symbol provided
+        if (isPositive) profitColor else lossColor
+    }
 
     val transparentGraphColor = remember(lineColor) {
         lineColor.copy(alpha = 0.5f)

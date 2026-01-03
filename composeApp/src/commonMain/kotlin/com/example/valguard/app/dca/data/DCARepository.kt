@@ -41,12 +41,6 @@ class DCARepository(
         dayOfMonth: Int? = null
     ): Long {
         val now = Clock.System.now().toEpochMilliseconds()
-        val nextExecution = NextExecutionCalculator.calculateNextExecutionDate(
-            frequency = frequency,
-            dayOfWeek = dayOfWeek,
-            dayOfMonth = dayOfMonth,
-            fromDate = now
-        )
         
         val schedule = DCASchedule(
             coinId = coinId,
@@ -59,7 +53,7 @@ class DCARepository(
             dayOfMonth = dayOfMonth,
             isActive = true,
             createdAt = now,
-            nextExecutionDate = nextExecution
+            lastExecutedAt = null
         )
         
         return scheduleDao.insert(schedule.toEntity())
@@ -84,25 +78,20 @@ class DCARepository(
     ) {
         val schedule = scheduleDao.getScheduleById(scheduleId) ?: return
         
+        val now = Clock.System.now().toEpochMilliseconds()
+        
         // Record the execution
         val execution = DCAExecutionEntity(
             scheduleId = scheduleId,
-            executedAt = Clock.System.now().toEpochMilliseconds(),
+            executedAt = now,
             amount = amount,
             coinPriceAtExecution = coinPrice,
             coinsAcquired = amount / coinPrice
         )
         executionDao.insert(execution)
         
-        // Calculate next execution date
-        val nextDate = NextExecutionCalculator.calculateNextExecutionDate(
-            frequency = DCAFrequency.fromValue(schedule.frequency),
-            dayOfWeek = schedule.dayOfWeek,
-            dayOfMonth = schedule.dayOfMonth
-        )
-        
-        // Update schedule
-        scheduleDao.updateAfterExecution(scheduleId, nextDate, amount)
+        // Update schedule with new lastExecutedAt
+        scheduleDao.updateAfterExecution(scheduleId, now, amount)
     }
     
     fun getExecutionsForSchedule(scheduleId: Long): Flow<List<DCAExecutionEntity>> {

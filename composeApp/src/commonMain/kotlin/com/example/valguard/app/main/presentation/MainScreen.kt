@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -53,9 +54,6 @@ fun MainScreen(
     onBuyClick: (String) -> Unit,
     onSellClick: (String) -> Unit,
     onCoinClick: (String) -> Unit = {},
-    onDCAClick: () -> Unit = {},
-    onCompareClick: () -> Unit = {},
-    onReferralClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val colors = LocalCryptoColors.current
@@ -85,7 +83,6 @@ fun MainScreen(
         activeTab = when (activeBottomNav) {
             BottomNavItem.MARKET -> Tab.MARKET
             BottomNavItem.PORTFOLIO -> Tab.PORTFOLIO
-            BottomNavItem.ALERTS -> activeTab // Keep current tab when alerts is clicked
             BottomNavItem.DCA -> activeTab
             BottomNavItem.COMPARE -> activeTab
         }
@@ -100,110 +97,131 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 72.dp) // Space for bottom nav
         ) {
-            // Header
-            ValguardHeader(
-                alertCount = alerts.activeCount(),
-                onAlertClick = { showAlertModal = true },
-                onMoreClick = { showMoreMenu = true }
-            )
-            
-            // Search bar
-            SearchBar(
-                query = coinsState.searchQuery,
-                onQueryChange = { coinsViewModel.onSearchQueryChange(it) },
-                modifier = Modifier.padding(vertical = spacing.sm)
-            )
-            
-            // Tab navigation
-            TabNavigation(
-                activeTab = activeTab,
-                onTabSelected = { tab ->
-                    activeTab = tab
-                    activeBottomNav = when (tab) {
-                        Tab.MARKET -> BottomNavItem.MARKET
-                        Tab.PORTFOLIO -> BottomNavItem.PORTFOLIO
-                        Tab.WATCHLIST -> BottomNavItem.MARKET // Watchlist uses market nav
+            // Only show common header/tabs for Market, Portfolio, and Watchlist
+            if (activeBottomNav == BottomNavItem.MARKET || activeBottomNav == BottomNavItem.PORTFOLIO) {
+                // Header
+                ValguardHeader(
+                    marketCount = coinsState.coins.size,
+                    portfolioCount = portfolioState.coins.size,
+                    alertCount = alerts.activeCount(),
+                    onAlertClick = { showAlertModal = true },
+                    onMoreClick = { showMoreMenu = true }
+                )
+                
+                // Search bar
+                SearchBar(
+                    query = coinsState.searchQuery,
+                    onQueryChange = { coinsViewModel.onSearchQueryChange(it) },
+                    modifier = Modifier.padding(vertical = spacing.sm)
+                )
+                
+                // Tab navigation
+                TabNavigation(
+                    activeTab = activeTab,
+                    onTabSelected = { tab ->
+                        activeTab = tab
+                        activeBottomNav = when (tab) {
+                            Tab.MARKET -> BottomNavItem.MARKET
+                            Tab.PORTFOLIO -> BottomNavItem.PORTFOLIO
+                            Tab.WATCHLIST -> activeBottomNav // Keep current nav if it's already Market/Portfolio
+                        }
                     }
-                }
-            )
+                )
+                
+                Spacer(modifier = Modifier.height(spacing.sm))
+            }
             
-            Spacer(modifier = Modifier.height(spacing.sm))
-            
-            // Content based on active tab
-            when {
-                coinsState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = colors.accentBlue500)
+            // Content based on active bottom nav
+            Box(modifier = Modifier.weight(1f)) {
+                when (activeBottomNav) {
+                    BottomNavItem.DCA -> {
+                        com.example.valguard.app.dca.presentation.DCAScreen(
+                            onBack = { activeBottomNav = BottomNavItem.MARKET },
+                            onNavigateToBuy = onBuyClick
+                        )
                     }
-                }
-                else -> {
-                    when (activeTab) {
-                        Tab.MARKET -> MarketContent(
-                            coins = coinsState.filteredCoins,
-                            watchlistIds = watchlistIds,
-                            expandedCoinId = expandedCoinId,
-                            selectedTimeframe = selectedTimeframe,
-                            onCardClick = { coinId -> onCoinClick(coinId) },
-                            onTimeframeSelected = { selectedTimeframe = it },
-                            onSetAlertClick = { showAlertModal = true },
-                            onBuyClick = onBuyClick,
-                            onSellClick = onSellClick,
-                            onWatchlistToggle = { coinId ->
-                                // Toggle watchlist in coroutine scope
+                    BottomNavItem.COMPARE -> {
+                        com.example.valguard.app.compare.presentation.CompareScreen(
+                            onBack = { activeBottomNav = BottomNavItem.MARKET }
+                        )
+                    }
+                    else -> {
+                        // Market / Portfolio / Watchlist logic
+                        when {
+                            coinsState.isLoading -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(color = colors.accentBlue500)
+                                }
                             }
-                        )
-                        Tab.PORTFOLIO -> PortfolioContent(
-                            portfolioValue = portfolioState.portfolioValue,
-                            change24h = portfolioState.performancePercent,
-                            isPositive = portfolioState.isPerformancePositive,
-                            coins = portfolioState.coins,
-                            watchlistIds = watchlistIds,
-                            expandedCoinId = expandedCoinId,
-                            selectedTimeframe = selectedTimeframe,
-                            onCardClick = { coinId -> onCoinClick(coinId) },
-                            onTimeframeSelected = { selectedTimeframe = it },
-                            onSetAlertClick = { showAlertModal = true },
-                            onBuyClick = onBuyClick,
-                            onSellClick = onSellClick,
-                            onWatchlistToggle = { },
-                            onDiscoverClick = { activeTab = Tab.MARKET }
-                        )
-                        Tab.WATCHLIST -> WatchlistContent(
-                            coins = coinsState.filteredCoins.filter { it.id in watchlistIds },
-                            watchlistIds = watchlistIds,
-                            expandedCoinId = expandedCoinId,
-                            selectedTimeframe = selectedTimeframe,
-                            onCardClick = { coinId -> onCoinClick(coinId) },
-                            onTimeframeSelected = { selectedTimeframe = it },
-                            onSetAlertClick = { showAlertModal = true },
-                            onBuyClick = onBuyClick,
-                            onSellClick = onSellClick,
-                            onWatchlistToggle = { },
-                            onDiscoverClick = { activeTab = Tab.MARKET }
-                        )
+                            else -> {
+                                when (activeTab) {
+                                    Tab.MARKET -> MarketContent(
+                                        coins = coinsState.filteredCoins,
+                                        watchlistIds = watchlistIds,
+                                        expandedCoinId = expandedCoinId,
+                                        selectedTimeframe = selectedTimeframe,
+                                        onCardClick = { coinId -> onCoinClick(coinId) },
+                                        onTimeframeSelected = { selectedTimeframe = it },
+                                        onSetAlertClick = { showAlertModal = true },
+                                        onBuyClick = onBuyClick,
+                                        onSellClick = onSellClick,
+                                        onWatchlistToggle = { }
+                                    )
+                                    Tab.PORTFOLIO -> PortfolioContent(
+                                        portfolioValue = portfolioState.portfolioValue,
+                                        change24h = portfolioState.performancePercent,
+                                        isPositive = portfolioState.isPerformancePositive,
+                                        coins = portfolioState.coins,
+                                        watchlistIds = watchlistIds,
+                                        expandedCoinId = expandedCoinId,
+                                        selectedTimeframe = selectedTimeframe,
+                                        onCardClick = { coinId -> onCoinClick(coinId) },
+                                        onTimeframeSelected = { selectedTimeframe = it },
+                                        onSetAlertClick = { showAlertModal = true },
+                                        onBuyClick = onBuyClick,
+                                        onSellClick = onSellClick,
+                                        onWatchlistToggle = { },
+                                        onDiscoverClick = { activeTab = Tab.MARKET }
+                                    )
+                                    Tab.WATCHLIST -> WatchlistContent(
+                                        coins = coinsState.filteredCoins.filter { it.id in watchlistIds },
+                                        watchlistIds = watchlistIds,
+                                        expandedCoinId = expandedCoinId,
+                                        selectedTimeframe = selectedTimeframe,
+                                        onCardClick = { coinId -> onCoinClick(coinId) },
+                                        onTimeframeSelected = { selectedTimeframe = it },
+                                        onSetAlertClick = { showAlertModal = true },
+                                        onBuyClick = onBuyClick,
+                                        onSellClick = onSellClick,
+                                        onWatchlistToggle = { },
+                                        onDiscoverClick = { activeTab = Tab.MARKET }
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
         
-        // Bottom navigation with new items
-        CryptoBottomNavigation(
-            activeItem = activeBottomNav,
-            onItemSelected = { item ->
-                when (item) {
-                    BottomNavItem.ALERTS -> showAlertModal = true
-                    BottomNavItem.DCA -> onDCAClick()
-                    BottomNavItem.COMPARE -> onCompareClick()
-                    else -> activeBottomNav = item
+        // Bottom navigation with padding container
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(spacing.md)
+        ) {
+            CryptoBottomNavigation(
+                activeItem = activeBottomNav,
+                onItemSelected = { item ->
+                    activeBottomNav = item
                 }
-            },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+            )
+        }
         
         // Alert modal
         if (showAlertModal) {
@@ -228,7 +246,7 @@ fun MainScreen(
                 onDismiss = { showMoreMenu = false },
                 onReferralClick = {
                     showMoreMenu = false
-                    onReferralClick()
+                    // TODO: Handle referral navigation if still needed as a separate screen
                 }
             )
         }
@@ -309,7 +327,12 @@ private fun PortfolioContent(
     
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
-        contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
+        contentPadding = PaddingValues(
+            start = spacing.md,
+            end = spacing.md, 
+            top = spacing.sm,
+            bottom = 100.dp // Clear bottom nav
+        ),
         modifier = Modifier.fillMaxSize()
     ) {
         // Portfolio value card

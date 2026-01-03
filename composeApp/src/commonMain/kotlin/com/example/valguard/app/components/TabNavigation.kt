@@ -112,7 +112,10 @@ private fun TabItem(
             shape = shape
         )
     } else {
-        Modifier.background(Color.Transparent, shape)
+        Modifier.background(
+            color = colors.cardBackground.copy(alpha = 0.3f),
+            shape = shape
+        )
     }
     
     Box(
@@ -120,14 +123,14 @@ private fun TabItem(
             .clip(shape)
             .then(backgroundModifier)
             .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
+            .padding(vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = tab.label,
             fontSize = 14.sp,
             fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isActive) colors.textPrimary else colors.textSecondary
+            color = if (isActive) colors.textPrimary else colors.textSecondary.copy(alpha = 0.7f)
         )
     }
 }

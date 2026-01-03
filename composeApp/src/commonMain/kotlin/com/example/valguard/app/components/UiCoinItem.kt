@@ -28,6 +28,7 @@ import com.example.valguard.app.realtime.domain.PriceDirection
  * @property formattedChange Pre-formatted change percentage (e.g., "+5.23%")
  * @property isPositive Whether the price change is positive
  * @property priceDirection Real-time price movement direction
+ * @property sparklineData Optional sparkline chart data points
  * @property holdingsAmount Optional formatted holdings amount (e.g., "0.5 BTC")
  * @property holdingsValue Optional formatted holdings value (e.g., "$22,561.73")
  * @property marketCap Optional formatted market cap (e.g., "$850B")
@@ -43,6 +44,7 @@ data class UiCoinItem(
     val formattedChange: String,
     val isPositive: Boolean,
     val priceDirection: PriceDirection,
+    val sparklineData: List<Double> = emptyList(),
     val holdingsAmount: String? = null,
     val holdingsValue: String? = null,
     val marketCap: String? = null,

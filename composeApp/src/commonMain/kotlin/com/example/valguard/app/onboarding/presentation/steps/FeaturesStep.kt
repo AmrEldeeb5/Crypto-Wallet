@@ -170,55 +170,5 @@ fun FeaturesHeader(
     }
 }
 
-/**
- * Promotional banner highlighting free features.
- *
- * @param modifier Optional modifier for the component
- */
-@Composable
-fun FreeForeverBanner(
-    modifier: Modifier = Modifier
-) {
-    val colors = LocalCryptoColors.current
-    val typography = LocalCryptoTypography.current
-    val dimensions = AppTheme.dimensions
-    
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(dimensions.cardCornerRadius))
-            .background(
-                Brush.horizontalGradient(
-                    colors = listOf(
-                        colors.accentBlue600.copy(alpha = 0.2f),
-                        colors.accentPurple600.copy(alpha = 0.2f)
-                    )
-                )
-            )
-            .padding(dimensions.cardPadding)
-    ) {
-        Row(verticalAlignment = Alignment.Top) {
-            Icon(painter = painterResource(Res.drawable.material_symbols__shield_outline_rounded),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(dimensions.coinIconSize * 1f)
-            )
-            Spacer(modifier = Modifier.width(dimensions.itemSpacing))
-            Column {
-                Text(
-                    text = "100% Free Forever",
-                    style = typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colors.accentBlue400
-                )
-                Spacer(modifier = Modifier.height(dimensions.smallSpacing / 2))
-                Text(
-                    text = "No credit card required.\nAll premium features included.",
-                    style = typography.labelSmall,
-                    color = colors.textTertiary
-                )
-            }
-        }
-    }
-}
+
 

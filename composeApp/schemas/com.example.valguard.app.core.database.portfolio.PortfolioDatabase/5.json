@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "95b37c5e7efdfa7ed3e1bd44cd390c8a",
+    "identityHash": "08705a7fcfe8a4ad5f858db0a16001fa",
     "entities": [
       {
         "tableName": "PortfolioCoinEntity",
@@ -108,7 +108,7 @@
       },
       {
         "tableName": "dca_schedules",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `coinId` TEXT NOT NULL, `coinName` TEXT NOT NULL, `coinSymbol` TEXT NOT NULL, `coinIconUrl` TEXT NOT NULL, `amount` REAL NOT NULL, `frequency` TEXT NOT NULL, `dayOfWeek` INTEGER, `dayOfMonth` INTEGER, `isActive` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `nextExecutionDate` INTEGER NOT NULL, `totalInvested` REAL NOT NULL, `executionCount` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `coinId` TEXT NOT NULL, `coinName` TEXT NOT NULL, `coinSymbol` TEXT NOT NULL, `coinIconUrl` TEXT NOT NULL, `amount` REAL NOT NULL, `frequency` TEXT NOT NULL, `dayOfWeek` INTEGER, `dayOfMonth` INTEGER, `isActive` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `lastExecutedAt` INTEGER, `totalInvested` REAL NOT NULL, `executionCount` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -175,10 +175,9 @@
             "notNull": true
           },
           {
-            "fieldPath": "nextExecutionDate",
-            "columnName": "nextExecutionDate",
-            "affinity": "INTEGER",
-            "notNull": true
+            "fieldPath": "lastExecutedAt",
+            "columnName": "lastExecutedAt",
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "totalInvested",
@@ -347,7 +346,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '95b37c5e7efdfa7ed3e1bd44cd390c8a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '08705a7fcfe8a4ad5f858db0a16001fa')"
     ]
   }
 }

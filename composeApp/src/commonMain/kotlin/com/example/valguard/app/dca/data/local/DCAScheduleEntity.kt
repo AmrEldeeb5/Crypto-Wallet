@@ -17,7 +17,7 @@ data class DCAScheduleEntity(
     val dayOfMonth: Int? = null, // 1-28 for monthly
     val isActive: Boolean = true,
     val createdAt: Long,
-    val nextExecutionDate: Long,
+    val lastExecutedAt: Long? = null, // Timestamp of last execution
     val totalInvested: Double = 0.0,
     val executionCount: Int = 0
 )

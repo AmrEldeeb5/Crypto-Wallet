@@ -10,5 +10,7 @@ data class UiCoinListItem(
     val formattedPrice: String,
     val formattedChange: String,
     val isPositive: Boolean,
-    val priceDirection: PriceDirection = PriceDirection.UNCHANGED
+    val priceDirection: PriceDirection = PriceDirection.UNCHANGED,
+    val holdingsAmount: String? = null,
+    val holdingsValue: String? = null
 )

@@ -19,6 +19,7 @@ import valguard.composeapp.generated.resources.material_symbols__finance_mode_ro
 import valguard.composeapp.generated.resources.material_symbols__notifications_outline
 import valguard.composeapp.generated.resources.material_symbols__shield_outline_rounded
 import org.jetbrains.compose.resources.DrawableResource
+import valguard.composeapp.generated.resources.solar__wallet_money_outline
 
 /**
  * Enum representing icon types used in onboarding feature cards.
@@ -32,7 +33,7 @@ enum class OnboardingIcon(val resource: DrawableResource) {
     ANALYTICS (Res.drawable.material_symbols__bar_chart_4_bars_rounded),
     TRENDING_UP(Res.drawable.material_symbols__finance_mode_rounded),
     NOTIFICATIONS(Res.drawable.material_symbols__notifications_outline),
-    WALLET(Res.drawable.material_symbols__account_balance_wallet_outline),
+    WALLET(Res.drawable.solar__wallet_money_outline),
     SHIELD(Res.drawable.material_symbols__shield_outline_rounded)
 }
 

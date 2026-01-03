@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import com.example.valguard.app.coins.presentation.component.PerformanceChart
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -89,6 +90,9 @@ fun CoinCard(
         append("${coin.name}, ${coin.symbol}. ")
         append("Price: ${coin.formattedPrice}. ")
         append("Change: ${coin.formattedChange}. ")
+        if (coin.holdingsAmount != null) {
+            append("Holding: ${coin.holdingsAmount}. ")
+        }
         if (showHoldings && coin.hasHoldings()) {
             append("Holdings: ${coin.holdingsAmount}, worth ${coin.holdingsValue}.")
         }
@@ -136,55 +140,63 @@ fun CoinCard(
 
             // Coin name and symbol
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(0.25f)
             ) {
                 Text(
-                    text = coin.name,
+                    text = coin.symbol,
                     style = typography.titleMedium,
                     color = colors.textPrimary
                 )
                 Text(
-                    text = coin.symbol,
+                    text = coin.name,
                     style = typography.bodyMedium,
                     color = colors.textSecondary
                 )
             }
 
+            // Sparkline chart (if data available)
+            if (coin.sparklineData.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .weight(0.35f)
+                        .height(40.dp)
+                        .padding(horizontal = 8.dp)
+                ) {
+                    PerformanceChart(
+                        nodes = coin.sparklineData,
+                        profitColor = changeColor,
+                        lossColor = changeColor,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.weight(0.35f))
+            }
+
             // Price and change section
             Column(
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.weight(0.4f)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        text = coin.formattedPrice,
-                        style = typography.titleMedium,
-                        color = colors.textPrimary
-                    )
-                    Spacer(modifier = Modifier.width(dimensions.smallSpacing))
-                    PriceIndicator(direction = coin.priceDirection)
-                }
+                Text(
+                    text = coin.formattedPrice,
+                    style = typography.titleMedium,
+                    color = colors.textPrimary
+                )
 
                 Text(
                     text = coin.formattedChange,
-                    style = typography.bodyMedium,
+                    style = typography.bodySmall,
                     color = changeColor
                 )
 
-                // Holdings section (only shown when showHoldings is true and holdings exist)
-                if (showHoldings && coin.hasHoldings()) {
-                    Spacer(modifier = Modifier.height(dimensions.smallSpacing))
+                // Holdings indicator (only shown when holdings exist)
+                if (coin.holdingsAmount != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = coin.holdingsAmount ?: "",
+                        text = "Holding: ${coin.holdingsAmount}",
                         style = typography.caption,
-                        color = colors.textSecondary
-                    )
-                    Text(
-                        text = coin.holdingsValue ?: "",
-                        style = typography.caption,
-                        color = colors.textTertiary
+                        color = colors.textTertiary.copy(alpha = 0.7f)
                     )
                 }
             }

@@ -5,13 +5,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.valguard.app.coins.domain.usecase.GetCoinPriceHistoryUseCase
 import com.example.valguard.app.coins.domain.usecase.GetCoinsListUseCase
 import com.example.valguard.app.core.domain.Result
+import com.example.valguard.app.core.util.formatCrypto
 import com.example.valguard.app.core.util.formatFiat
 import com.example.valguard.app.core.util.toUiText
+import com.example.valguard.app.portfolio.domain.PortfolioCoinModel
+import com.example.valguard.app.portfolio.domain.PortfolioRepository
 import com.example.valguard.app.realtime.domain.ConnectionState
 import com.example.valguard.app.realtime.domain.ObservePriceUpdatesUseCase
 import com.example.valguard.app.realtime.domain.PriceDirection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -22,6 +26,7 @@ private const val SCREEN_ID = "coins_list_screen"
 class CoinsListViewModel(
     private val getCoinsListUseCase: GetCoinsListUseCase,
     private val getCoinPriceHistoryUseCase: GetCoinPriceHistoryUseCase,
+    private val portfolioRepository: PortfolioRepository,
     private val observePriceUpdatesUseCase: ObservePriceUpdatesUseCase? = null
 ) : ViewModel() {
 
@@ -68,12 +73,29 @@ class CoinsListViewModel(
         }
     }
 
+    private suspend fun getPortfolioHoldings(): Map<String, PortfolioCoinModel> {
+        return try {
+            when (val result = portfolioRepository.allPortfolioCoinsFlow().firstOrNull()) {
+                is Result.Success -> result.data.associateBy { it.coin.id }
+                is Result.Failure -> emptyMap()
+                null -> emptyMap()
+            }
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
     private suspend fun getAllCoins() {
         _state.update { it.copy(isLoading = true, error = null) }
+
+        // Fetch portfolio holdings for merging
+        val portfolioHoldings = getPortfolioHoldings()
 
         when (val coinsResponse = getCoinsListUseCase.execute()) {
             is Result.Success -> {
                 val coins = coinsResponse.data.map { coinItem ->
+                    val holding = portfolioHoldings[coinItem.coin.id]
+                    
                     UiCoinListItem(
                         id = coinItem.coin.id,
                         name = coinItem.coin.name,
@@ -82,6 +104,12 @@ class CoinsListViewModel(
                         formattedPrice = formatFiat(coinItem.price),
                         formattedChange = formatFiat(coinItem.change, showDecimal = false),
                         isPositive = coinItem.change >= 0,
+                        holdingsAmount = holding?.let { 
+                            "${it.ownedAmountInUnit.formatCrypto()} ${coinItem.coin.symbol}"
+                        },
+                        holdingsValue = holding?.let { 
+                            formatFiat(it.ownedAmountInFiat)
+                        }
                     )
                 }
 
@@ -129,13 +157,24 @@ class CoinsListViewModel(
     }
 
     fun onCoinLongPressed(coinId: String) {
-        val coinName = _state.value.coins.find { it.id == coinId }?.name.orEmpty()
+        val coin = _state.value.coins.find { it.id == coinId }
+        val coinName = coin?.name.orEmpty()
+        val coinSymbol = coin?.symbol.orEmpty()
+        
+        // Extract change percent from formatted change (e.g., "$2" -> 2.0)
+        val changePercent = coin?.formattedChange
+            ?.replace("$", "")
+            ?.replace(",", "")
+            ?.toDoubleOrNull() ?: 0.0
+        
         _state.update {
             it.copy(
                 chartState = UiChartState(
                     sparkLine = emptyList(),
                     isLoading = true,
-                    coinName = coinName
+                    coinName = coinName,
+                    coinSymbol = coinSymbol,
+                    changePercent = changePercent
                 )
             )
         }
@@ -150,6 +189,8 @@ class CoinsListViewModel(
                                     .map { it.price },
                                 isLoading = false,
                                 coinName = coinName,
+                                coinSymbol = coinSymbol,
+                                changePercent = changePercent
                             )
                         )
                     }
@@ -162,6 +203,8 @@ class CoinsListViewModel(
                                 sparkLine = emptyList(),
                                 isLoading = false,
                                 coinName = coinName,
+                                coinSymbol = coinSymbol,
+                                changePercent = changePercent,
                                 error = "Could not load chart data"
                             )
                         )
