@@ -104,28 +104,17 @@ fun PortfolioValueCard(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = if (isPositive) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (isPositive) "Trending up" else "Trending down",
-                    tint = changeColor,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = formattedChange,
+            PriceChangeIndicator(
+                changePercent = change24h,
+                formattedChange = "$formattedChange (24h)",
+                isPositive = isPositive,
+                textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = changeColor
-                )
-                Text(
-                    text = " (24h)",
-                    fontSize = 14.sp,
-                    color = colors.textTertiary
-                )
-            }
+                    fontWeight = FontWeight.Medium
+                ),
+                iconSize = 20.dp,
+                color = changeColor
+            )
             
             if (isEmpty) {
                 Spacer(modifier = Modifier.height(12.dp))

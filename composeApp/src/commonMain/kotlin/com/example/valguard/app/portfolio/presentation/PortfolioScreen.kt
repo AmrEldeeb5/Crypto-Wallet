@@ -158,6 +158,7 @@ private fun UiPortfolioCoinItem.toUiCoinItem(): UiCoinItem {
         iconUrl = iconUrl,
         formattedPrice = amountInFiatText,
         formattedChange = performancePercentText,
+        changePercent = performancePercent,
         isPositive = isPositive,
         priceDirection = priceDirection,
         holdingsAmount = amountInUnitText,

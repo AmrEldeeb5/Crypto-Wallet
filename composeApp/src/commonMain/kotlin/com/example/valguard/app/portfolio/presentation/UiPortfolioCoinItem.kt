@@ -10,6 +10,7 @@ data class UiPortfolioCoinItem(
     val amountInUnitText: String,
     val amountInFiatText: String,
     val performancePercentText: String,
+    val performancePercent: Double,
     val isPositive: Boolean,
     val priceDirection: PriceDirection = PriceDirection.UNCHANGED
 )

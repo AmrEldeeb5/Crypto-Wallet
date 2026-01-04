@@ -83,7 +83,12 @@ fun CoinCard(
     val shapes = LocalCryptoShapes.current
     val dimensions = AppTheme.dimensions
 
-    val changeColor = if (coin.isPositive) colors.profit else colors.loss
+    // Use sparkline color logic for neutral color support
+    val changeColor = getSparklineColor(
+        symbol = coin.symbol,
+        changePercent = coin.changePercent,
+        isPositive = coin.isPositive
+    )
 
     // Build accessibility description
     val accessibilityDescription = buildString {
@@ -184,9 +189,12 @@ fun CoinCard(
                     color = colors.textPrimary
                 )
 
-                Text(
-                    text = coin.formattedChange,
-                    style = typography.bodySmall,
+                PriceChangeIndicator(
+                    changePercent = coin.changePercent,
+                    formattedChange = coin.formattedChange,
+                    isPositive = coin.isPositive,
+                    textStyle = typography.bodySmall,
+                    iconSize = 16.dp,
                     color = changeColor
                 )
 

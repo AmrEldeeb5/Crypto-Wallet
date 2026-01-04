@@ -201,16 +201,21 @@ fun ExpandableCoinCard(
                     color = colors.textTertiary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    PriceIndicator(direction = coin.priceDirection)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = coin.formattedChange,
+                PriceChangeIndicator(
+                    changePercent = coin.changePercent,
+                    formattedChange = coin.formattedChange,
+                    isPositive = coin.isPositive,
+                    textStyle = MaterialTheme.typography.titleMedium.copy(
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = changeColor
+                        fontWeight = FontWeight.Bold
+                    ),
+                    iconSize = 20.dp,
+                    color = getSparklineColor(
+                        symbol = coin.symbol,
+                        changePercent = coin.changePercent,
+                        isPositive = coin.isPositive
                     )
-                }
+                )
             }
             
             // Market Cap Column

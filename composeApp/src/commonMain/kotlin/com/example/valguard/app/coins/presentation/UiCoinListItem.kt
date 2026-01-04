@@ -9,6 +9,7 @@ data class UiCoinListItem(
     val iconUrl: String,
     val formattedPrice: String,
     val formattedChange: String,
+    val changePercent: Double,
     val isPositive: Boolean,
     val priceDirection: PriceDirection = PriceDirection.UNCHANGED,
     val holdingsAmount: String? = null,

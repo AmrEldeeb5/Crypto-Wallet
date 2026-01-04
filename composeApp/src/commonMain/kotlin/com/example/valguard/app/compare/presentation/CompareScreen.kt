@@ -73,6 +73,9 @@ import com.example.valguard.theme.LocalCryptoSpacing
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.pow
 
+// Locked row height for consistent spacing
+private val ComparisonRowHeight = 56.dp
+
 @Composable
 fun CompareScreen() {
     val viewModel = koinViewModel<CompareViewModel>()
@@ -332,14 +335,7 @@ private fun CoinSelectorCard(
                 } else Modifier
             )
             .clip(shape)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        colors.cardBackground.copy(alpha = 0.6f),
-                        colors.cardBackground.copy(alpha = 0.4f)
-                    )
-                )
-            )
+            .background(colors.cardBackground.copy(alpha = 0.5f))
             .border(
                 width = if (isSelected) 1.5.dp else 1.dp,
                 color = if (isSelected) borderColor.copy(alpha = 0.6f) else borderColor.copy(alpha = 0.15f),
@@ -495,24 +491,32 @@ private fun ComparisonTable(
             )
             
             metrics.forEachIndexed { index, (label, content) ->
-                // Add distinctive divider ABOVE Current Price row
-                if (index == 0) {
-                    // No divider above the first row
-                } 
+                val isCurrentPrice = index == 0
+                
+                // External spacing BEFORE Current Price for emphasis
+                if (isCurrentPrice) {
+                    Spacer(Modifier.height(8.dp))
+                    HorizontalDivider(
+                        color = colors.border.copy(alpha = 0.15f),
+                        thickness = 1.5.dp
+                    )
+                }
                 
                 ComparisonRow(label = label, content = content)
 
-                // Add dividers between rows, with special treatment for Current Price
-                if (index < metrics.size - 1) {
+                // External spacing and divider AFTER Current Price
+                if (isCurrentPrice) {
                     HorizontalDivider(
-                        color = if (index == 0) {
-                            // More visible divider AFTER Current Price to emphasize it
-                            colors.border.copy(alpha = 0.15f)
-                        } else {
-                            colors.border.copy(alpha = 0.05f)
-                        },
-                        thickness = if (index == 0) 1.5.dp else 1.dp,
-                        modifier = Modifier.padding(vertical = if (index == 0) spacing.md * 1.2f else spacing.md)
+                        color = colors.border.copy(alpha = 0.15f),
+                        thickness = 1.5.dp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                } else if (index < metrics.size - 1) {
+                    // Standard divider for other rows
+                    HorizontalDivider(
+                        color = colors.border.copy(alpha = 0.05f),
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(vertical = spacing.md)
                     )
                 }
             }
@@ -713,7 +717,11 @@ private fun MetricValueCell(
                         )
                 } else Modifier
             )
-            .padding(vertical = 6.dp, horizontal = 4.dp),
+            // Normalized padding: horizontal 10dp, vertical 6dp max (4dp for rank to reduce bloat)
+            .padding(
+                horizontal = 10.dp,
+                vertical = if (isRank) 4.dp else 6.dp
+            ),
         contentAlignment = Alignment.Center
     ) {
         // Background Bar
@@ -737,15 +745,7 @@ private fun MetricValueCell(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            // Crown icon for #1 rank - subtle, no animation
-            if (isRank && value == "#1") {
-                Text(
-                    text = "👑",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.size(14.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-            }
+            // Crown removed per feedback - rank pill treatment is sufficient emphasis
             
             Text(
                 text = value,
@@ -776,7 +776,9 @@ private fun ComparisonRow(
     val colors = LocalCryptoColors.current
     
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(ComparisonRowHeight),  // Locked row height for consistency
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(

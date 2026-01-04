@@ -9,6 +9,49 @@ expect fun formatCoinUnit(amount: Double, symbol: String): String
 expect fun formatPercentage(amount: Double): String
 
 /**
+ * Formats large numbers with compact notation using abbreviations.
+ *
+ * Uses K (thousands), M (millions), and B (billions) suffixes:
+ * - Billions (≥1B): "1.23B"
+ * - Millions (≥1M): "456.78M"
+ * - Thousands (≥1K): "12.34K"
+ * - Below 1K: "$1,234"
+ *
+ * @param amount The number to format
+ * @return Formatted string with currency symbol and abbreviation
+ *
+ * @example
+ * ```kotlin
+ * formatCompactNumber(1234567890.0)  // "$1.23B"
+ * formatCompactNumber(456780000.0)   // "$456.78M"
+ * formatCompactNumber(12340.0)       // "$12.34K"
+ * formatCompactNumber(999.0)         // "$999"
+ * ```
+ */
+fun formatCompactNumber(amount: Double): String {
+    val absAmount = kotlin.math.abs(amount)
+    val sign = if (amount < 0) "-" else ""
+    
+    return when {
+        absAmount >= 1_000_000_000 -> {
+            val billions = absAmount / 1_000_000_000
+            "$sign$${String.format("%.2f", billions)}B"
+        }
+        absAmount >= 1_000_000 -> {
+            val millions = absAmount / 1_000_000
+            "$sign$${String.format("%.2f", millions)}M"
+        }
+        absAmount >= 1_000 -> {
+            val thousands = absAmount / 1_000
+            "$sign$${String.format("%.2f", thousands)}K"
+        }
+        else -> {
+            "$sign$${absAmount.toInt()}"
+        }
+    }
+}
+
+/**
  * Formats cryptocurrency amounts with intelligent decimal precision.
  *
  * Uses adaptive decimal places based on amount magnitude:

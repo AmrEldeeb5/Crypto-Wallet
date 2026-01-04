@@ -58,11 +58,11 @@ fun DCAScreen(
     // TODO: Get coins from CoinsViewModel or repository
     val mockCoins = remember {
         listOf(
-            UiCoinItem("bitcoin", "Bitcoin", "BTC", "https://assets.coingecko.com/coins/images/1/large/bitcoin.png", "$0.00", "0.00%", false, PriceDirection.UNCHANGED),
-            UiCoinItem("ethereum", "Ethereum", "ETH", "https://assets.coingecko.com/coins/images/279/large/ethereum.png", "$0.00", "0.00%", false, PriceDirection.UNCHANGED),
-            UiCoinItem("tether", "Tether", "USDT", "https://assets.coingecko.com/coins/images/325/large/Tether.png", "$0.00", "0.00%", false, PriceDirection.UNCHANGED),
-            UiCoinItem("usd-coin", "USD Coin", "USDC", "https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png", "$0.00", "0.00%", false, PriceDirection.UNCHANGED),
-            UiCoinItem("binancecoin", "BNB", "BNB", "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png", "$0.00", "0.00%", false, PriceDirection.UNCHANGED)
+            UiCoinItem("bitcoin", "Bitcoin", "BTC", "https://assets.coingecko.com/coins/images/1/large/bitcoin.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED),
+            UiCoinItem("ethereum", "Ethereum", "ETH", "https://assets.coingecko.com/coins/images/279/large/ethereum.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED),
+            UiCoinItem("tether", "Tether", "USDT", "https://assets.coingecko.com/coins/images/325/large/Tether.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED),
+            UiCoinItem("usd-coin", "USD Coin", "USDC", "https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED),
+            UiCoinItem("binancecoin", "BNB", "BNB", "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED)
         )
     }
     

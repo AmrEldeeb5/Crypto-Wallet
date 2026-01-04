@@ -289,7 +289,12 @@ private fun MarketContent(
     } else {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
-            contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
+            contentPadding = PaddingValues(
+                start = spacing.md,
+                end = spacing.md,
+                top = spacing.sm,
+                bottom = 100.dp  // Clear bottom nav
+            ),
             modifier = Modifier.fillMaxSize()
         ) {
             items(coins, key = { it.id }) { coin ->
@@ -493,6 +498,7 @@ private fun UiCoinListItem.toUiCoinItem(watchlistIds: List<String>): UiCoinItem 
         iconUrl = iconUrl,
         formattedPrice = formattedPrice,
         formattedChange = formattedChange,
+        changePercent = changePercent,
         isPositive = isPositive,
         priceDirection = priceDirection,
         sparklineData = sparklineData,
@@ -509,6 +515,7 @@ private fun UiPortfolioCoinItem.toUiCoinItem(watchlistIds: List<String>): UiCoin
         iconUrl = iconUrl,
         formattedPrice = amountInFiatText,
         formattedChange = performancePercentText,
+        changePercent = performancePercent,
         isPositive = isPositive,
         priceDirection = priceDirection,
         holdingsAmount = amountInUnitText,

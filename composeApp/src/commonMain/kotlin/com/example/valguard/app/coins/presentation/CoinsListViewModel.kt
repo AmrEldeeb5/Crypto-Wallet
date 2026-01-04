@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.valguard.app.coins.domain.usecase.GetCoinPriceHistoryUseCase
 import com.example.valguard.app.coins.domain.usecase.GetCoinsListUseCase
 import com.example.valguard.app.core.domain.Result
+import com.example.valguard.app.core.util.formatCompactNumber
 import com.example.valguard.app.core.util.formatCrypto
 import com.example.valguard.app.core.util.formatFiat
 import com.example.valguard.app.core.util.toUiText
@@ -109,6 +110,7 @@ class CoinsListViewModel(
                         symbol = coinItem.coin.symbol,
                         formattedPrice = formatFiat(coinItem.price),
                         formattedChange = formattedChange,
+                        changePercent = coinItem.change,
                         isPositive = coinItem.change >= 0,
                         holdingsAmount = holding?.let { 
                             "${it.ownedAmountInUnit.formatCrypto()} ${coinItem.coin.symbol}"
@@ -117,7 +119,7 @@ class CoinsListViewModel(
                             formatFiat(it.ownedAmountInFiat)
                         },
                         sparklineData = coinItem.sparkline,
-                        marketCap = if (coinItem.marketCap > 0) formatFiat(coinItem.marketCap, showDecimal = false) else null
+                        marketCap = if (coinItem.marketCap > 0) formatCompactNumber(coinItem.marketCap) else null
                     )
                 }
 

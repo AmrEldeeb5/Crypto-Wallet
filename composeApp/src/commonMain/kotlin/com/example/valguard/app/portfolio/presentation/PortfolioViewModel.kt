@@ -164,6 +164,7 @@ class PortfolioViewModel(
             amountInUnitText = formatCoinUnit(ownedAmountInUnit, coin.symbol),
             amountInFiatText = formatFiat(ownedAmountInFiat),
             performancePercentText = formatPercentage(performancePercent),
+            performancePercent = performancePercent,
             isPositive = performancePercent >= 0,
             priceDirection = priceDirections[coin.id] ?: PriceDirection.UNCHANGED
         )

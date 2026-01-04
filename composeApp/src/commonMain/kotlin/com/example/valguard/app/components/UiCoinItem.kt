@@ -26,6 +26,7 @@ import com.example.valguard.app.realtime.domain.PriceDirection
  * @property iconUrl URL to the coin's icon image
  * @property formattedPrice Pre-formatted price string (e.g., "$45,123.45")
  * @property formattedChange Pre-formatted change percentage (e.g., "+5.23%")
+ * @property changePercent Raw percentage change value (e.g., 5.23, -2.40)
  * @property isPositive Whether the price change is positive
  * @property priceDirection Real-time price movement direction
  * @property sparklineData Optional sparkline chart data points
@@ -42,6 +43,7 @@ data class UiCoinItem(
     val iconUrl: String,
     val formattedPrice: String,
     val formattedChange: String,
+    val changePercent: Double,
     val isPositive: Boolean,
     val priceDirection: PriceDirection,
     val sparklineData: List<Double> = emptyList(),

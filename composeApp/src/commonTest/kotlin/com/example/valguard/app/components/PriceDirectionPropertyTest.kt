@@ -131,6 +131,7 @@ class PriceDirectionPropertyTest {
         iconUrl = "",
         formattedPrice = "$100.00",
         formattedChange = formattedChange,
+        changePercent = if (isPositive) 5.0 else -5.0,
         isPositive = isPositive,
         priceDirection = priceDirection
     )

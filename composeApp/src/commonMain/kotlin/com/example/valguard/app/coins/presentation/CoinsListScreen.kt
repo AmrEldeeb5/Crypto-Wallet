@@ -163,6 +163,7 @@ private fun UiCoinListItem.toUiCoinItem(): UiCoinItem {
         iconUrl = iconUrl,
         formattedPrice = formattedPrice,
         formattedChange = formattedChange,
+        changePercent = changePercent,
         isPositive = isPositive,
         priceDirection = priceDirection
     )
