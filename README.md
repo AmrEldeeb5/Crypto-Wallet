@@ -1,5 +1,11 @@
 This is a Kotlin Multiplatform project targeting Android, iOS.
 
+Data Disclaimer
+
+This project uses real market data from the Coinranking API.
+Certain advanced metrics (ATH, supply, historical extremes) are not provided by the API and are mocked for demonstration purposes only.
+The architecture is designed to support replacing mock sources with real APIs (e.g. CoinGecko) without UI refactoring.
+
 ## Setup
 
 ### API Key Configuration
