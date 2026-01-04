@@ -55,10 +55,8 @@ class OnboardingViewModel(
      * On coin selection step, requires at least one coin selected.
      */
     val canProceed: StateFlow<Boolean> = _state.map { state ->
-        when (state.currentStep) {
-            2 -> state.selectedCoins.isNotEmpty()
-            else -> true
-        }
+        // Always allow proceeding - "Continue" becomes "Skip" implicitly if empty
+        true
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
     
     /**
@@ -126,10 +124,6 @@ class OnboardingViewModel(
     private fun handleNextStep() {
         val currentState = _state.value
         if (currentState.currentStep < 3 && !currentState.isTransitioning) {
-            // Check if can proceed (coin selection validation)
-            if (currentState.currentStep == 2 && currentState.selectedCoins.isEmpty()) {
-                return
-            }
             
             _state.update { it.copy(isTransitioning = true) }
             viewModelScope.launch {

@@ -141,7 +141,7 @@ fun WelcomeHeader(
         Text(
             text = "Your premium crypto tracking companion",
             style = typography.bodyLarge,
-            color = colors.textTertiary.copy(alpha = 0.8f),
+            color = colors.textTertiary,
             textAlign = TextAlign.Center
         )
     }

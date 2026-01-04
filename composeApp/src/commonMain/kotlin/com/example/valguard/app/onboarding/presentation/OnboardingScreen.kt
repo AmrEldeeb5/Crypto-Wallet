@@ -146,44 +146,12 @@ fun OnboardingScreen(
         snapshotFlow { pagerState.settledPage }.collect { settledPage ->
             // Only sync when page is different from ViewModel state and not transitioning
             if (settledPage != state.currentStep && !state.isTransitioning) {
-                // User swiped to a different page
-                if (settledPage > state.currentStep) {
-                    // Swiped forward - check if can proceed
-                    // Block moving PAST coin selection (step 2 -> 3) if no coins selected
-                    // But allow if ViewModel already set currentStep to 3 (skip scenario)
-                    if (settledPage == 3 && state.selectedCoins.isEmpty() && state.currentStep < 3) {
-                        // Can't proceed past coin selection without selecting coins - snap back
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(state.currentStep)
-                        }
-                    } else {
-                        // Directly update ViewModel step to match pager (no delay needed, animation already happened)
-                        viewModel.syncToStep(settledPage)
-                    }
-                } else {
-                    // Swiped backward - directly sync ViewModel to match pager
-                    viewModel.syncToStep(settledPage)
-                }
+                // User swiped to a different page - directly sync ViewModel
+                viewModel.syncToStep(settledPage)
             }
         }
     }
     
-    // Block forward swipe from coin selection step when no coins selected
-    // This monitors the target page during scroll and snaps back immediately
-    // Only block user swipes, not programmatic navigation (like skip)
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.targetPage }.collect { targetPage ->
-            // If on coin selection (step 2) and trying to go to step 3 without coins
-            // Only block if this is a user swipe (ViewModel state hasn't changed yet)
-            if (pagerState.currentPage == 2 && targetPage == 3 && 
-                state.selectedCoins.isEmpty() && state.currentStep == 2) {
-                // Immediately snap back to coin selection
-                coroutineScope.launch {
-                    pagerState.scrollToPage(2)
-                }
-            }
-        }
-    }
     
     val stepGradient = Brush.horizontalGradient(stepColors)
     
