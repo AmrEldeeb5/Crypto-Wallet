@@ -141,7 +141,8 @@ private fun PortfolioCoinsList(
                         CoinCard(
                             coin = coin.toUiCoinItem(),
                             onClick = { onCoinItemClicked(coin.id) },
-                            showHoldings = true
+                            showHoldings = true,
+                            borderColor = colors.accentPurple400
                         )
                     }
                 }

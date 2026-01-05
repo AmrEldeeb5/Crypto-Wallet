@@ -151,7 +151,8 @@ fun CoinsList(
                 coin = coin.toUiCoinItem(),
                 onClick = { onCoinClicked(coin.id) },
                 onLongClick = { onCoinLongPressed(coin.id) },
-                showHoldings = false
+                showHoldings = false,
+                borderColor = colors.accentPurple400
             )
         }
     }

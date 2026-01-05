@@ -25,9 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.filled.Notifications
 import valguard.composeapp.generated.resources.solar__alt_arrow_left_outline
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -56,7 +54,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.example.valguard.app.coindetail.domain.ChartTimeframe
 import com.example.valguard.app.coindetail.domain.CoinDetailData
 import com.example.valguard.app.coindetail.domain.CoinHoldings
@@ -64,6 +61,7 @@ import com.example.valguard.app.components.AlertModal
 import com.example.valguard.app.components.BarChart
 import com.example.valguard.app.components.BarChartData
 import com.example.valguard.app.components.ChartPoint
+import com.example.valguard.app.components.CoinIconBox
 import com.example.valguard.app.components.EmptyState
 import com.example.valguard.app.components.ErrorState
 import com.example.valguard.app.components.SkeletonBox
@@ -196,15 +194,35 @@ private fun CoinDetailTopBar(
             )
         }
         
-        IconButton(
-            onClick = onWatchlistClick,
-            modifier = Modifier.size(44.dp)
+        // Bookmark Button with Gradient Border/Fill
+        val borderGradient = Brush.linearGradient(
+            colors = listOf(colors.accentBlue400, colors.accentPurple400)
+        )
+
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .then(
+                    if (isInWatchlist) {
+                        Modifier.background(borderGradient)
+                    } else {
+                        Modifier.background(colors.cardBackground.copy(alpha = 0.3f))
+                    }
+                )
+                .border(
+                    width = 1.dp,
+                    brush = borderGradient,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable { onWatchlistClick() }, // Removed padding inside click to ensure full box is clickable
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = if (isInWatchlist) painterResource(Res.drawable.solar__bookmark_bold) else painterResource(Res.drawable.solar__bookmark_linear),
                 contentDescription = if (isInWatchlist) "Remove from watchlist" else "Add to watchlist",
-                tint = if (isInWatchlist) colors.accentBlue400 else colors.textSecondary.copy(alpha = 0.85f),
-                modifier = Modifier.size(24.dp)
+                tint = if (isInWatchlist) Color.White else colors.textSecondary.copy(alpha = 0.85f),
+                modifier = Modifier.size(22.dp)
             )
         }
     }
@@ -334,12 +352,13 @@ private fun PriceDisplayCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = coinData.iconUrl,
+                CoinIconBox(
+                    iconUrl = coinData.iconUrl ?: "",
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp) // Optimized compact size
-                        .clip(RoundedCornerShape(10.dp))
+                    size = 40.dp,
+                    iconSize = 24.dp,
+                    cornerRadius = 10.dp,
+                    borderColor = colors.accentPurple400
                 )
                 
                 Spacer(modifier = Modifier.width(spacing.md))

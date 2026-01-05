@@ -48,6 +48,7 @@ import com.example.valguard.app.components.TabNavigation
 import com.example.valguard.app.components.Timeframe
 import com.example.valguard.app.components.UiCoinItem
 import com.example.valguard.app.components.activeCount
+import com.example.valguard.app.dca.presentation.DCAScreen
 import com.example.valguard.app.portfolio.presentation.PortfolioViewModel
 import com.example.valguard.app.portfolio.presentation.UiPortfolioCoinItem
 import com.example.valguard.app.watchlist.domain.WatchlistRepository
@@ -108,24 +109,20 @@ fun MainScreen(
             // Only show common header/tabs for Market, Portfolio, and Watchlist
             if (activeBottomNav == BottomNavItem.MARKET || activeBottomNav == BottomNavItem.PORTFOLIO) {
                 // Header
-                ValguardHeader(
-                    marketCount = coinsState.coins.size,
-                    portfolioCount = portfolioState.coins.size,
-                    alertCount = alerts.activeCount(),
-                    onAlertClick = { showAlertModal = true },
-                    onMoreClick = { showMoreMenu = true }
-                )
-                
-                // Search bar
+                // Search placeholder logic
                 val searchPlaceholder = when (activeTab) {
                     Tab.PORTFOLIO -> "Search your assets"
                     else -> "Search cryptocurrencies"
                 }
-                SearchBar(
-                    query = coinsState.searchQuery,
-                    onQueryChange = { coinsViewModel.onSearchQueryChange(it) },
+
+                // Header with integrated search
+                ValguardHeader(
+                    searchQuery = coinsState.searchQuery,
+                    onSearchQueryChange = { coinsViewModel.onSearchQueryChange(it) },
                     placeholder = searchPlaceholder,
-                    modifier = Modifier.padding(vertical = spacing.sm)
+                    alertCount = alerts.activeCount(),
+                    onAlertClick = { showAlertModal = true },
+                    onMoreClick = { showMoreMenu = true }
                 )
                 
                 // Tab navigation
@@ -148,7 +145,7 @@ fun MainScreen(
             Box(modifier = Modifier.weight(1f)) {
                 when (activeBottomNav) {
                     BottomNavItem.DCA -> {
-                        com.example.valguard.app.dca.presentation.DCAScreen(
+                        DCAScreen(
                             onBack = { activeBottomNav = BottomNavItem.MARKET },
                             onNavigateToBuy = onBuyClick
                         )

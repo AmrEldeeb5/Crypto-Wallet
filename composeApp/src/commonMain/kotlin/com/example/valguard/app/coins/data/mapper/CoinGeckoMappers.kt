@@ -7,6 +7,7 @@ import com.example.valguard.app.coins.data.remote.dto.CoinGeckoMarketDto
 import com.example.valguard.app.coins.domain.model.CoinModel
 import com.example.valguard.app.coins.domain.model.PriceModel
 import com.example.valguard.app.core.domain.coin.Coin
+import kotlinx.datetime.Clock
 
 /**
  * Mappers for CoinGecko data flow
@@ -17,7 +18,7 @@ import com.example.valguard.app.core.domain.coin.Coin
 
 // DTO → Entity mappers
 
-fun CoinGeckoMarketDto.toEntity(timestamp: Long = System.currentTimeMillis()): CoinEntity {
+fun CoinGeckoMarketDto.toEntity(timestamp: Long = Clock.System.now().toEpochMilliseconds()): CoinEntity {
     return CoinEntity(
         id = id,
         symbol = symbol,
@@ -41,7 +42,7 @@ fun CoinGeckoMarketDto.toEntity(timestamp: Long = System.currentTimeMillis()): C
     )
 }
 
-fun CoinGeckoDetailDto.toDetailEntity(timestamp: Long = System.currentTimeMillis()): CoinDetailEntity {
+fun CoinGeckoDetailDto.toDetailEntity(timestamp: Long = Clock.System.now().toEpochMilliseconds()): CoinDetailEntity {
     return CoinDetailEntity(
         id = id,
         description = description?.en,

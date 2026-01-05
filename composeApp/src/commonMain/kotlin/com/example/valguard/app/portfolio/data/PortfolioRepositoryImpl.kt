@@ -35,33 +35,33 @@ class PortfolioRepositoryImpl(
     }
 
     override fun allPortfolioCoinsFlow(): Flow<Result<List<PortfolioCoinModel>, DataError.Remote>> {
-        return flow {
+        return combine(
+            flow { emit(portfolioDao.getAllOwnedCoins()) },
+            coinGeckoRepository.observeCoins()
+        ) { portfolioCoinsEntities, cachedCoins ->
             try {
-                val portfolioCoinsEntities = portfolioDao.getAllOwnedCoins()
                 if (portfolioCoinsEntities.isEmpty()) {
-                    emit(Result.Success(emptyList()))
+                    Result.Success(emptyList())
                 } else {
                     // Refresh coins from CoinGecko if stale
                     if (coinGeckoRepository.isCacheStale()) {
                         coinGeckoRepository.refreshCoins()
                     }
                     
-                    // Get coins from cache
-                    val coinIds = portfolioCoinsEntities.map { it.coinId }
-                    val coins = coinGeckoRepository.getCoinsByIds(coinIds)
-                    
                     val portfolioCoins = portfolioCoinsEntities.mapNotNull { entity: PortfolioCoinEntity ->
-                        val coin = coins.find { it.id == entity.coinId }
+                        val coin = cachedCoins.find { it.id == entity.coinId }
                         coin?.let {
                             val price = it.currentPrice ?: 0.0
-                            entity.toPortfolioCoinModel(price)
+                            entity.toPortfolioCoinModel(price, it.priceChangePercentage24h)
                         }
                     }
-                    emit(Result.Success(portfolioCoins))
+                    Result.Success(portfolioCoins)
                 }
             } catch (e: Exception) {
-                emit(Result.Failure(DataError.Remote.UNKNOWN_ERROR))
+                Result.Failure(DataError.Remote.UNKNOWN_ERROR)
             }
+        }.catch { e ->
+            emit(Result.Failure(DataError.Remote.UNKNOWN_ERROR))
         }
     }
 
@@ -75,7 +75,7 @@ class PortfolioRepositoryImpl(
         
         return if (coin != null && portfolioCoinEntity != null) {
             val price = coin.currentPrice ?: 0.0
-            Result.Success(portfolioCoinEntity.toPortfolioCoinModel(price))
+            Result.Success(portfolioCoinEntity.toPortfolioCoinModel(price, coin.priceChangePercentage24h))
         } else if (portfolioCoinEntity == null) {
             Result.Success(null)
         } else {
@@ -97,30 +97,30 @@ class PortfolioRepositoryImpl(
     }
 
     override fun calculateTotalPortfolioValue(): Flow<Result<Double, DataError.Remote>> {
-        return flow {
+        return combine(
+            flow { emit(portfolioDao.getAllOwnedCoins()) },
+            coinGeckoRepository.observeCoins()
+        ) { portfolioCoinsEntities, cachedCoins ->
             try {
-                val portfolioCoinsEntities = portfolioDao.getAllOwnedCoins()
                 if (portfolioCoinsEntities.isEmpty()) {
-                    emit(Result.Success(0.0))
+                    Result.Success(0.0)
                 } else {
                     // Refresh coins from CoinGecko if stale
                     if (coinGeckoRepository.isCacheStale()) {
                         coinGeckoRepository.refreshCoins()
                     }
                     
-                    // Get coins from cache
-                    val coinIds = portfolioCoinsEntities.map { it.coinId }
-                    val coins = coinGeckoRepository.getCoinsByIds(coinIds)
-                    
                     val totalValue = portfolioCoinsEntities.sumOf { entity: PortfolioCoinEntity ->
-                        val coinPrice = coins.find { it.id == entity.coinId }?.currentPrice ?: 0.0
+                        val coinPrice = cachedCoins.find { it.id == entity.coinId }?.currentPrice ?: 0.0
                         entity.amountOwned * coinPrice
                     }
-                    emit(Result.Success(totalValue))
+                    Result.Success(totalValue)
                 }
             } catch (e: Exception) {
-                emit(Result.Failure(DataError.Remote.UNKNOWN_ERROR))
+                Result.Failure(DataError.Remote.UNKNOWN_ERROR)
             }
+        }.catch { e ->
+            emit(Result.Failure(DataError.Remote.UNKNOWN_ERROR))
         }
     }
 

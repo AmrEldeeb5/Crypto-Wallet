@@ -16,8 +16,10 @@
 package com.example.valguard.app.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -29,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.valguard.theme.CryptoGradients
 import com.example.valguard.theme.LocalCryptoColors
+import org.jetbrains.compose.resources.painterResource
+import valguard.composeapp.generated.resources.Res
+import valguard.composeapp.generated.resources.material_symbols__notifications_outline
+import valguard.composeapp.generated.resources.solar__bell_linear
 
 /**
  * Main application header with branding and actions.
@@ -43,8 +50,9 @@ import com.example.valguard.theme.LocalCryptoColors
  * Displays contextual market information with dynamic stats,
  * along with alert notifications and optional menu access.
  *
- * @param marketCount Total number of assets being tracked
- * @param portfolioCount Number of assets in user's portfolio
+ * @param searchQuery Current search query
+ * @param onSearchQueryChange Callback for search query changes
+ * @param placeholder Placeholder text for search
  * @param alertCount Number of active alerts to show in badge (0 hides badge)
  * @param onAlertClick Callback when the alert bell is tapped
  * @param onMoreClick Optional callback for the more menu button (null hides button)
@@ -52,8 +60,9 @@ import com.example.valguard.theme.LocalCryptoColors
  */
 @Composable
 fun ValguardHeader(
-    marketCount: Int,
-    portfolioCount: Int,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    placeholder: String = "Search...",
     alertCount: Int,
     onAlertClick: () -> Unit,
     onMoreClick: (() -> Unit)? = null,
@@ -68,84 +77,83 @@ fun ValguardHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
-            // Primary title - calm and personal
-            Text(
-                text = "Your Market",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = colors.textPrimary
-            )
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            // Secondary subtitle - informational and factual
-            Text(
-                text = "Tracking $marketCount assets · $portfolioCount in your portfolio",
-                fontSize = 13.sp,
-                color = colors.textSecondary.copy(alpha = 0.7f)
-            )
-        }
+        SearchBar(
+            query = searchQuery,
+            onQueryChange = onSearchQueryChange,
+            placeholder = placeholder,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp)
+        )
         
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Alert bell with badge
-            Box {
+            val hasAlerts = alertCount > 0
+            val activeGradient = CryptoGradients.blueToPerple()
+            
+            Box(
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        brush = activeGradient,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .background(
+                        brush = if (hasAlerts) activeGradient else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
                 IconButton(
                     onClick = onAlertClick,
                     modifier = Modifier.semantics { contentDescription = "Open alerts" }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Notifications,
+                        painter = painterResource(Res.drawable.solar__bell_linear),
                         contentDescription = "Alerts",
-                        tint = colors.textSecondary,
+                        tint = if (hasAlerts) colors.textPrimary else colors.textSecondary,
                         modifier = Modifier.size(28.dp)
                     )
                 }
                 
                 // Badge
-                if (alertCount > 0) {
+                if (hasAlerts) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .offset(x = (-4).dp, y = 4.dp)
                             .size(18.dp)
                             .clip(CircleShape)
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        colors.accentBlue500,
-                                        colors.accentPurple500
-                                    )
-                                )
-                            ),
+                            .background(colors.backgroundPrimary), // White/Dark background to contrast with gradient button
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = if (alertCount > 9) "9+" else alertCount.toString(),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = colors.textPrimary
+                            style = androidx.compose.ui.text.TextStyle(
+                                brush = activeGradient // Gradient text for the badge
+                            )
                         )
                     }
                 }
             }
             
             // More menu button
-            if (onMoreClick != null) {
-                IconButton(
-                    onClick = onMoreClick,
-                    modifier = Modifier.semantics { contentDescription = "Open menu" }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More options",
-                        tint = colors.textSecondary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
+//            if (onMoreClick != null) {
+//                IconButton(
+//                    onClick = onMoreClick,
+//                    modifier = Modifier.semantics { contentDescription = "Open menu" }
+//                ) {
+//                    Icon(
+//                        imageVector = Icons.Default.MoreVert,
+//                        contentDescription = "More options",
+//                        tint = colors.textSecondary,
+//                        modifier = Modifier.size(24.dp)
+//                    )
+//                }
+//            }
         }
     }
 }

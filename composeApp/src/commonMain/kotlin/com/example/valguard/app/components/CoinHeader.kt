@@ -76,19 +76,14 @@ fun CoinHeader(
                 contentDescription = "Trading $name${currentPrice?.let { " at $it" } ?: ""}"
             }
     ) {
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(colors.cardBackgroundElevated)
-        ) {
-            AsyncImage(
-                model = iconUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        CoinIconBox(
+            iconUrl = iconUrl,
+            contentDescription = null,
+            size = 24.dp,
+            iconSize = 16.dp,
+            cornerRadius = 12.dp,
+            borderColor = colors.accentPurple400
+        )
         
         Spacer(modifier = Modifier.width(spacing.md))
         

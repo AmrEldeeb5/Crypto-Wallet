@@ -661,31 +661,14 @@ private fun DCAScheduleCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(spacing.md), verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF8B5CF6), // Purple
-                                        Color(0xFF3B82F6)  // Blue
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.White.copy(alpha = 0.15f))
-                        )
-                        AsyncImage(
-                            model = schedule.coinIconUrl,
-                            contentDescription = null,
-                            modifier = Modifier.size(36.dp)
-                        )
-                    }
+                    CoinIconBox(
+                        iconUrl = schedule.coinIconUrl,
+                        contentDescription = null,
+                        size = 56.dp,
+                        iconSize = 36.dp,
+                        cornerRadius = 16.dp,
+                        borderColor = colors.accentPurple400
+                    )
                     Column {
                         Text(
                             text = "${schedule.coinSymbol} Auto-Buy",
@@ -1086,19 +1069,14 @@ private fun CoinSelectorBottomSheet(
                                 modifier = Modifier.padding(vertical = spacing.md),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.White.copy(alpha = 0.05f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AsyncImage(
-                                        model = coin.iconUrl,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
+                                CoinIconBox(
+                                    iconUrl = coin.iconUrl,
+                                    contentDescription = null,
+                                    size = 40.dp,
+                                    iconSize = 24.dp,
+                                    cornerRadius = 12.dp,
+                                    borderColor = colors.accentPurple400
+                                )
                                 Spacer(modifier = Modifier.height(spacing.sm))
                                 Text(
                                     text = coin.symbol,
@@ -1136,19 +1114,14 @@ private fun CoinSelectorBottomSheet(
                             horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(colors.cardBackground.copy(alpha = 0.4f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = coin.iconUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
+                            CoinIconBox(
+                                iconUrl = coin.iconUrl,
+                                contentDescription = null,
+                                size = 44.dp,
+                                iconSize = 28.dp,
+                                cornerRadius = 10.dp,
+                                borderColor = colors.accentPurple400
+                            )
                             Spacer(modifier = Modifier.width(spacing.md))
                             Column {
                                 Text(

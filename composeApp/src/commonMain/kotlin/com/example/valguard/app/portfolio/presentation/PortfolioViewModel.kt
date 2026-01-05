@@ -157,15 +157,18 @@ class PortfolioViewModel(
     private fun PortfolioCoinModel.toUiPortfolioCoinItem(
         priceDirections: Map<String, PriceDirection>
     ): UiPortfolioCoinItem {
+        // Use 24h market change from CoinGecko instead of portfolio performance
+        val change24h = priceChangePercentage24h ?: 0.0
+        
         return UiPortfolioCoinItem(
             id = coin.id,
             name = coin.name,
             iconUrl = coin.iconUrl,
             amountInUnitText = formatCoinUnit(ownedAmountInUnit, coin.symbol),
             amountInFiatText = formatFiat(ownedAmountInFiat),
-            performancePercentText = formatPercentage(performancePercent),
-            performancePercent = performancePercent,
-            isPositive = performancePercent >= 0,
+            performancePercentText = formatPercentage(change24h),
+            performancePercent = change24h,
+            isPositive = change24h >= 0,
             priceDirection = priceDirections[coin.id] ?: PriceDirection.UNCHANGED
         )
     }

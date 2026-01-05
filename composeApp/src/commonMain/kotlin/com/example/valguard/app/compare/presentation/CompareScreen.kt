@@ -28,7 +28,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Star
+
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -63,8 +64,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.example.valguard.app.compare.domain.SavedComparison
+import com.example.valguard.app.components.CoinIconBox
 import com.example.valguard.app.components.ErrorState
 import com.example.valguard.app.components.SkeletonCard
 import com.example.valguard.app.core.util.UiState
@@ -72,6 +73,10 @@ import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoSpacing
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.pow
+import org.jetbrains.compose.resources.painterResource
+import valguard.composeapp.generated.resources.Res
+import valguard.composeapp.generated.resources.solar__bookmark_bold
+import valguard.composeapp.generated.resources.solar__bookmark_linear
 
 // Locked row height for consistent spacing
 private val ComparisonRowHeight = 56.dp
@@ -103,7 +108,7 @@ fun CompareScreen() {
                 Snackbar(
                     snackbarData = data,
                     containerColor = colors.accentBlue500,
-                    contentColor = androidx.compose.ui.graphics.Color.White,
+                    contentColor = Color.White,
                     shape = RoundedCornerShape(12.dp)
                 )
             }
@@ -123,7 +128,24 @@ fun CompareScreen() {
             verticalArrangement = Arrangement.spacedBy(spacing.md)
         ) {
             item {
-                CompareHeader()
+                // Check if current comparison is saved
+                val isSaved = remember(state.coin1, state.coin2, state.savedComparisons) {
+                    val currentCoin1 = state.coin1
+                    val currentCoin2 = state.coin2
+                    val savedList = (state.savedComparisons as? UiState.Success)?.data ?: emptyList()
+                    
+                    if (currentCoin1 != null && currentCoin2 != null) {
+                        savedList.any { saved ->
+                            (saved.coin1Id == currentCoin1.id && saved.coin2Id == currentCoin2.id) ||
+                            (saved.coin1Id == currentCoin2.id && saved.coin2Id == currentCoin1.id)
+                        }
+                    } else false
+                }
+
+                CompareHeader(
+                    isSaved = isSaved,
+                    onToggleSave = { viewModel.onEvent(CompareEvent.SaveComparison) }
+                )
             }
             
             item {
@@ -189,7 +211,7 @@ fun CompareScreen() {
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        imageVector = Icons.Default.Star,
+                                        painter = painterResource(Res.drawable.solar__bookmark_bold),
                                         contentDescription = null,
                                         modifier = Modifier.size(18.dp),
                                         tint = androidx.compose.ui.graphics.Color.White
@@ -232,37 +254,78 @@ fun CompareScreen() {
 
 
 @Composable
-private fun CompareHeader() {
+private fun CompareHeader(
+    isSaved: Boolean = false,
+    onToggleSave: () -> Unit = {}
+) {
     val colors = LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
     
-    Column {
-        Text(
-            text = "Compare Coins",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = colors.textPrimary
-        )
-        Text(
-            text = "Real-time market comparison",
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.textSecondary.copy(alpha = 0.8f)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Compare Coins",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = colors.textPrimary
+            )
+            Text(
+                text = "Real-time market comparison",
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary.copy(alpha = 0.8f)
+            )
+            
+            Spacer(modifier = Modifier.height(spacing.sm))
+            
+            // Identity Divider
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.15f)
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(colors.accentBlue400, colors.accentPurple400)
+                        )
+                    )
+            )
+        }
+
+        // Bookmark Button with Gradient Border/Fill
+        val borderGradient = Brush.linearGradient(
+            colors = listOf(colors.accentBlue400, colors.accentPurple400)
         )
         
-        Spacer(modifier = Modifier.height(spacing.sm))
-        
-        // Identity Divider
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.15f)
-                .height(3.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(colors.accentBlue400, colors.accentPurple400)
-                    )
+                .clip(RoundedCornerShape(12.dp))
+                .then(
+                    if (isSaved) {
+                        Modifier.background(borderGradient)
+                    } else {
+                        Modifier.background(colors.cardBackground.copy(alpha = 0.3f))
+                    }
                 )
-        )
+                .border(
+                    width = 1.dp,
+                    brush = borderGradient,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable { onToggleSave() }
+                .padding(10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = if (isSaved) painterResource(Res.drawable.solar__bookmark_bold) else painterResource(Res.drawable.solar__bookmark_linear),
+                contentDescription = if (isSaved) "Remove from saved" else "Save comparison",
+                tint = if (isSaved) Color.White else colors.textSecondary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -299,7 +362,7 @@ private fun CoinSelectorRow(
 @Composable
 private fun CoinSelectorCard(
     coin: CoinSlot?,
-    borderColor: androidx.compose.ui.graphics.Color,
+    borderColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -321,19 +384,19 @@ private fun CoinSelectorCard(
         animationSpec = tween(500),
         label = "glowAlpha"
     )
-    
+
     Box(
         modifier = modifier
             .scale(scale)
-            .then(
-                if (isSelected) {
-                    Modifier.shadow(
-                        elevation = 8.dp,
-                        shape = shape,
-                        spotColor = borderColor.copy(alpha = 0.3f)
-                    )
-                } else Modifier
-            )
+//            .then(
+//                if (isSelected) {
+//                    Modifier.shadow(
+//                        elevation = 8.dp,
+//                        shape = shape,
+//                        spotColor = borderColor.copy(alpha = 0.3f)
+//                    )
+//                } else Modifier
+//            )
             .clip(shape)
             .background(colors.cardBackground.copy(alpha = 0.5f))
             .border(
@@ -351,23 +414,14 @@ private fun CoinSelectorCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Icon Box with accent glow
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(borderColor.copy(alpha = 0.2f), borderColor.copy(alpha = 0.05f))
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AsyncImage(
-                        model = coin.iconUrl,
-                        contentDescription = "${coin.name} icon",
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
+                CoinIconBox(
+                    iconUrl = coin.iconUrl,
+                    contentDescription = "${coin.name} icon",
+                    size = 56.dp,
+                    iconSize = 32.dp,
+                    cornerRadius = 16.dp,
+                    borderColor = borderColor
+                )
                 
                 Column {
                     Text(
@@ -385,7 +439,7 @@ private fun CoinSelectorCard(
                         Spacer(modifier = Modifier.width(spacing.xs))
                         // Mini price context
                         Text(
-                            text = "$${formatPrice(coin.price)}",
+                            text = formatPrice(coin.price),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,
                             color = colors.textSecondary.copy(alpha = 0.5f)
@@ -622,7 +676,7 @@ private fun generateVerdict(
             append(liquidityLeader.uppercase())
         }
         append(" dominates the ")
-        withStyle(SpanStyle(color = androidx.compose.ui.graphics.Color(0xFF4CAF50))) { // Greenish
+        withStyle(SpanStyle(color = Color(0xFF4CAF50))) { // Greenish
             append("market")
         }
         append(", while ")
@@ -630,7 +684,7 @@ private fun generateVerdict(
             append(growthLeader.uppercase())
         }
         append(" shows stronger ")
-        withStyle(SpanStyle(color = androidx.compose.ui.graphics.Color(0xFF2196F3))) { // Blueish
+        withStyle(SpanStyle(color = Color(0xFF2196F3))) { // Blueish
             append("price momentum")
         }
         append(" today.")
@@ -688,11 +742,11 @@ private fun MetricValues(
 private fun MetricValueCell(
     value: String,
     isWinner: Boolean,
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
     modifier: Modifier = Modifier,
     barFraction: Float = 0f,
     isRank: Boolean = false,
-    rankUp: Boolean = false // Not used effectively for rank yet without diff logic, keeping simple
+    @Suppress("UNUSED_PARAMETER") rankUp: Boolean = false
 ) {
     val colors = LocalCryptoColors.current
 
@@ -890,20 +944,23 @@ private fun SavedComparisonCard(
             ) {
                 // Stacked Icons Pair
                 Box(modifier = Modifier.size(48.dp)) {
-                    AsyncImage(
-                        model = comparison.coin1IconUrl,
+                    CoinIconBox(
+                        iconUrl = comparison.coin1IconUrl,
                         contentDescription = null,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .align(Alignment.TopStart)
+                        size = 32.dp,
+                        iconSize = 20.dp,
+                        cornerRadius = 8.dp,
+                        borderColor = colors.accentBlue400,
+                        modifier = Modifier.align(Alignment.TopStart)
                     )
-                    AsyncImage(
-                        model = comparison.coin2IconUrl,
+                    CoinIconBox(
+                        iconUrl = comparison.coin2IconUrl,
                         contentDescription = null,
+                        size = 32.dp,
+                        iconSize = 20.dp,
+                        cornerRadius = 8.dp,
+                        borderColor = colors.accentPurple400,
                         modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(8.dp))
                             .align(Alignment.BottomEnd)
                             .border(2.dp, colors.cardBackground, RoundedCornerShape(8.dp))
                     )
@@ -1048,10 +1105,13 @@ private fun CoinOptionItem(
             horizontalArrangement = Arrangement.spacedBy(spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = coin.iconUrl,
+            CoinIconBox(
+                iconUrl = coin.iconUrl,
                 contentDescription = "${coin.name} icon",
-                modifier = Modifier.size(40.dp)
+                size = 40.dp,
+                iconSize = 24.dp,
+                cornerRadius = 10.dp,
+                borderColor = colors.accentPurple400
             )
             Column {
                 Text(

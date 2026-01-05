@@ -11,6 +11,7 @@ import com.example.valguard.app.coins.domain.model.PriceModel
 import com.example.valguard.app.core.domain.DataError
 import com.example.valguard.app.core.domain.Result
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.Clock
 
 /**
  * Cache-first repository for CoinGecko data
@@ -56,7 +57,7 @@ class CoinGeckoRepository(
      */
     suspend fun isCacheStale(): Boolean {
         val oldestTimestamp = coinDao.getOldestTimestamp() ?: return true
-        return System.currentTimeMillis() - oldestTimestamp > CACHE_STALENESS_MS
+        return Clock.System.now().toEpochMilliseconds() - oldestTimestamp > CACHE_STALENESS_MS
     }
 
     /**
@@ -66,7 +67,7 @@ class CoinGeckoRepository(
     suspend fun refreshCoins(): Result<Unit, DataError.Remote> {
         return when (val result = remoteDataSource.getCoinsMarkets()) {
             is Result.Success -> {
-                val timestamp = System.currentTimeMillis()
+                val timestamp = Clock.System.now().toEpochMilliseconds()
                 val entities = result.data.map { it.toEntity(timestamp) }
                 coinDao.insertCoins(entities)
                 Result.Success(Unit)
@@ -81,8 +82,8 @@ class CoinGeckoRepository(
     suspend fun refreshCoinDetail(coinId: String): Result<Unit, DataError.Remote> {
         return when (val result = remoteDataSource.getCoinDetail(coinId)) {
             is Result.Success -> {
-                val timestamp = System.currentTimeMillis()
-                
+                val timestamp = Clock.System.now().toEpochMilliseconds()
+
                 // Update coin entity with detailed market data
                 val marketData = result.data.marketData
                 val existingCoin = coinDao.getCoin(coinId)
