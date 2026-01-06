@@ -563,8 +563,8 @@ private fun DCAAmountInput(
         isError = isError,
         shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.5f),
-            focusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.5f),
+            unfocusedContainerColor = Slate900.copy(alpha = 0.5f),
+            focusedContainerColor = Slate900.copy(alpha = 0.5f),
             unfocusedBorderColor = colors.border.copy(alpha = 0.1f),
             focusedBorderColor = colors.accentBlue400
         )
@@ -1031,8 +1031,8 @@ private fun CoinSelectorBottomSheet(
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.5f),
-                    focusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.5f),
+                    unfocusedContainerColor = Slate900.copy(alpha = 0.5f),
+                    focusedContainerColor = Slate900.copy(alpha = 0.5f),
                     unfocusedBorderColor = colors.border.copy(alpha = 0.1f),
                     focusedBorderColor = colors.accentBlue400,
                     cursorColor = colors.accentBlue400

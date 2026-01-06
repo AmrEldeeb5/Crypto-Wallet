@@ -87,7 +87,8 @@ import com.example.valguard.app.onboarding.presentation.steps.WelcomeStep
 import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
-import com.example.valguard.theme.LocalCryptoTypography
+import com.example.valguard.theme.Slate900
+import com.example.valguard.theme.Slate950
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -163,10 +164,10 @@ fun OnboardingScreen(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF020617), // slate-950 - deep top
-                            Color(0xFF0F172A), // slate-900 - lighter middle
+                            Slate950, // slate-950 - deep top
+                            Slate900, // slate-900 - lighter middle
                             Color(0xFF1E293B), // slate-800 - subtle lift
-                            Color(0xFF0F172A)  // slate-900 - return to depth
+                            Slate900  // slate-900 - return to depth
                         )
                     )
                 )

@@ -74,6 +74,7 @@ import com.example.valguard.app.core.util.UiState
 import com.example.valguard.app.core.util.getPriceChangeColor
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoSpacing
+import com.example.valguard.theme.Slate900
 import org.koin.compose.viewmodel.koinViewModel
 import org.jetbrains.compose.resources.painterResource
 import valguard.composeapp.generated.resources.Res
@@ -86,7 +87,7 @@ import kotlin.math.pow
 
 // Custom gradient colors
 private val SlateGradientStart = Color(0xFF1E293B) // slate-800
-private val SlateGradientEnd = Color(0xFF0F172A)   // slate-900
+private val SlateGradientEnd = Slate900   // slate-900
 private val EmeraldStart = Color(0xFF34D399)       // emerald-400
 private val EmeraldEnd = Color(0xFF10B981)         // emerald-500
 

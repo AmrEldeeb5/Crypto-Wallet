@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.Color
 /** Slate 950 - Darkest background */
 val Slate950 = Color(0xFF020617)
 /** Slate 900 - Primary dark background */
-val Slate900 = Color(0xFF0F172A)
+val Slate900 = Color(0xFF111C33)
 /** Slate 800 - Elevated surfaces */
 val Slate800 = Color(0xFF1E293B)
 /** Slate 700 - Borders and dividers */
@@ -197,8 +197,8 @@ data class CryptoColors(
 val DarkCryptoColors = CryptoColors(
     // Backgrounds - Slate 950/900
     backgroundPrimary = Color(0xFF020617),    // slate-950
-    backgroundSecondary = Color(0xFF0F172A),  // slate-900
-    
+    backgroundSecondary = Slate900,  // slate-900
+
     // Profit/Loss - Emerald/Rose
     profit = Color(0xFF34D399),               // emerald-400
     loss = Color(0xFFFB7185),                 // rose-400

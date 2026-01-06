@@ -8,7 +8,7 @@ import androidx.room.Query
 @Dao
 interface PreferenceDao {
 
-    @Query("SELECT value FROM preferences WHERE key = :key LIMIT 1")
+    @Query("SELECT value FROM preferences WHERE `key` = :key LIMIT 1")
     suspend fun getValue(key: String): String?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
