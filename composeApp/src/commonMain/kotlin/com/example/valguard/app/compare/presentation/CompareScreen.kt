@@ -77,6 +77,7 @@ import com.example.valguard.app.components.SkeletonCard
 import com.example.valguard.app.core.util.UiState
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoSpacing
+import com.example.valguard.app.components.AutoResizingText
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.pow
 import org.jetbrains.compose.resources.painterResource
@@ -460,7 +461,7 @@ private fun CoinSelectorCard(
                         )
                         Spacer(modifier = Modifier.width(spacing.xs))
                         // Mini price context
-                        Text(
+                        AutoResizingText(
                             text = formatPrice(coin.price),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,

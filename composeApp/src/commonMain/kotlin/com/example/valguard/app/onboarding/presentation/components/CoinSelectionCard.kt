@@ -60,6 +60,7 @@ import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoAccessibility
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
+import com.example.valguard.app.components.AutoResizingText
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -200,53 +201,6 @@ fun CoinSelectionCard(
     }
 }
 
-/**
- * Text composable that automatically scales down its font size to fit within one line.
- *
- * @param text The text to display
- * @param style The initial text style
- * @param modifier The modifier to apply to the text
- * @param color The color of the text
- * @param fontWeight The font weight of the text
- */
-@Composable
-private fun AutoResizingText(
-    text: String,
-    style: androidx.compose.ui.text.TextStyle,
-    modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified,
-    fontWeight: FontWeight? = null
-) {
-    var resizedStyle by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(style) }
-    var shouldDraw by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
 
-    val defaultFontSize = style.fontSize
-
-    Text(
-        text = text,
-        color = color,
-        modifier = modifier.drawWithContent {
-            if (shouldDraw) {
-                drawContent()
-            }
-        },
-        softWrap = false,
-        style = resizedStyle.copy(
-            fontWeight = fontWeight ?: style.fontWeight
-        ),
-        onTextLayout = { result ->
-            if (result.didOverflowWidth) {
-                if (resizedStyle.fontSize.value > 8f) { // Minimum font size check
-                    val newSize = resizedStyle.fontSize * 0.9f
-                    resizedStyle = resizedStyle.copy(fontSize = newSize)
-                } else {
-                    shouldDraw = true // Too small, just draw it
-                }
-            } else {
-                shouldDraw = true
-            }
-        }
-    )
-}
 
 
