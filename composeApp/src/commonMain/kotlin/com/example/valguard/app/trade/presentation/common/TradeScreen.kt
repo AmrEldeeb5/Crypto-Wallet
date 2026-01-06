@@ -63,7 +63,6 @@ fun TradeScreen(
         TradeType.BUY -> colors.profit
         TradeType.SELL -> colors.loss
     }
-    }
 
     val focusManager = LocalFocusManager.current
 
@@ -179,7 +178,8 @@ fun CenteredDollarTextField(
     val colors = LocalCryptoColors.current
     val typography = LocalCryptoTypography.current
     val spacing = LocalCryptoSpacing.current
-    
+    val focusManager = LocalFocusManager.current
+
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
@@ -206,7 +206,7 @@ fun CenteredDollarTextField(
         ),
         keyboardActions = KeyboardActions(
             onDone = {
-                LocalFocusManager.current.clearFocus() 
+                focusManager.clearFocus()
             }
         ),
         decorationBox = { innerTextField ->
