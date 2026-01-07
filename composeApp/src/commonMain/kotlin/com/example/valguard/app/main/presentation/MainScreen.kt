@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -130,51 +131,30 @@ fun MainScreen(
             .statusBarsPadding()
             .nestedScroll(scrollBehaviorState.nestedScrollConnection)
     ) {
+        // Content area (behind header)
         Column(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Only show common header/tabs for Market, Portfolio, and Watchlist
+            // Only show header spacer for Market, Portfolio, and Watchlist
             if (activeBottomNav == BottomNavItem.MARKET || activeBottomNav == BottomNavItem.PORTFOLIO) {
-                Column(
-                    modifier = Modifier.offset(y = headerOffset)
-                ) {
-                    // Header
-                    // Search placeholder logic
-                    val searchPlaceholder = when (activeTab) {
-                        Tab.PORTFOLIO -> "Search your assets"
-                        else -> "Search cryptocurrencies"
-                    }
-
-                    // Header with integrated search
-                    ValguardHeader(
-                        searchQuery = coinsState.searchQuery,
-                        onSearchQueryChange = { coinsViewModel.onSearchQueryChange(it) },
-                        placeholder = searchPlaceholder,
-                        alertCount = alerts.activeCount(),
-                        onAlertClick = { showAlertModal = true },
-                        onMoreClick = { showMoreMenu = true }
-                    )
-
-                    // Tab navigation
-                    TabNavigation(
-                        activeTab = activeTab,
-                        onTabSelected = { tab ->
-                            activeTab = tab
-                            activeBottomNav = when (tab) {
-                                Tab.MARKET -> BottomNavItem.MARKET
-                                Tab.PORTFOLIO -> BottomNavItem.PORTFOLIO
-                                Tab.WATCHLIST -> activeBottomNav // Keep current nav if it's already Market/Portfolio
-                            }
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(spacing.sm))
-                }
+                // Spacer that shrinks when header hides
+                val headerSpacerHeight by animateDpAsState(
+                    targetValue = if (visibilityFraction > 0.01f) 140.dp else 0.dp,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    ),
+                    label = "HeaderSpacer"
+                )
+                Spacer(modifier = Modifier.height(headerSpacerHeight))
             }
             
             // Content based on active bottom nav
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(colors.backgroundPrimary) // Content background
+            ) {
                 when (activeBottomNav) {
                     BottomNavItem.DCA -> {
                         DCAScreen(
@@ -247,6 +227,48 @@ fun MainScreen(
             }
         }
         
+        // Header overlay (on top of content)
+        if (activeBottomNav == BottomNavItem.MARKET || activeBottomNav == BottomNavItem.PORTFOLIO) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopStart)
+                    .background(colors.backgroundPrimary) // Background moves with header
+                    .offset(y = headerOffset)
+            ) {
+                // Search placeholder logic
+                val searchPlaceholder = when (activeTab) {
+                    Tab.PORTFOLIO -> "Search your assets"
+                    else -> "Search cryptocurrencies"
+                }
+
+                // Header with integrated search
+                ValguardHeader(
+                    searchQuery = coinsState.searchQuery,
+                    onSearchQueryChange = { coinsViewModel.onSearchQueryChange(it) },
+                    placeholder = searchPlaceholder,
+                    alertCount = alerts.activeCount(),
+                    onAlertClick = { showAlertModal = true },
+                    onMoreClick = { showMoreMenu = true }
+                )
+
+                // Tab navigation
+                TabNavigation(
+                    activeTab = activeTab,
+                    onTabSelected = { tab ->
+                        activeTab = tab
+                        activeBottomNav = when (tab) {
+                            Tab.MARKET -> BottomNavItem.MARKET
+                            Tab.PORTFOLIO -> BottomNavItem.PORTFOLIO
+                            Tab.WATCHLIST -> activeBottomNav
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(spacing.sm))
+            }
+        }
+
         // Bottom navigation with padding container and smooth animation
         Box(
             modifier = Modifier

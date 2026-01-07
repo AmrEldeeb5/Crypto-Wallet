@@ -447,17 +447,19 @@ private fun CoinSelectorCard(
                 )
                 
                 Column {
-                    Text(
+                    AutoResizingText(
                         text = coin.name,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = colors.textPrimary
+                        color = colors.textPrimary,
+                        maxLines = 1
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        AutoResizingText(
                             text = coin.symbol.uppercase(),
                             style = MaterialTheme.typography.labelSmall,
-                            color = colors.textSecondary.copy(alpha = 0.8f)
+                            color = colors.textSecondary.copy(alpha = 0.8f),
+                            maxLines = 1
                         )
                         Spacer(modifier = Modifier.width(spacing.xs))
                         // Mini price context
