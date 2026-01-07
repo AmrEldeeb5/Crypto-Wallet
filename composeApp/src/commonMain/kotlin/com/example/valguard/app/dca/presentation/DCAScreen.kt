@@ -55,15 +55,21 @@ fun DCAScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalCryptoColors.current
     
-    // TODO: Get coins from CoinsViewModel or repository
-    val mockCoins = remember {
-        listOf(
-            UiCoinItem("bitcoin", "Bitcoin", "BTC", "https://assets.coingecko.com/coins/images/1/large/bitcoin.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED),
-            UiCoinItem("ethereum", "Ethereum", "ETH", "https://assets.coingecko.com/coins/images/279/large/ethereum.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED),
-            UiCoinItem("tether", "Tether", "USDT", "https://assets.coingecko.com/coins/images/325/large/Tether.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED),
-            UiCoinItem("usd-coin", "USD Coin", "USDC", "https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED),
-            UiCoinItem("binancecoin", "BNB", "BNB", "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png", "$0.00", "0.00%", 0.0, false, PriceDirection.UNCHANGED)
-        )
+    // Convert available coins to UiCoinItem for the selector
+    val selectorCoins = remember(state.availableCoins) {
+        state.availableCoins.map { coin ->
+            UiCoinItem(
+                id = coin.id,
+                name = coin.name,
+                symbol = coin.symbol,
+                iconUrl = coin.iconUrl,
+                formattedPrice = coin.price?.let { "$${formatAmount(it)}" } ?: "-",
+                formattedChange = "-",
+                changePercent = 0.0,
+                isPositive = true,
+                priceDirection = PriceDirection.UNCHANGED
+            )
+        }
     }
     
     Scaffold(
@@ -162,7 +168,7 @@ fun DCAScreen(
     
     if (state.showCoinSelector) {
         CoinSelectorBottomSheet(
-            coins = mockCoins,
+            coins = selectorCoins,
             onDismiss = { viewModel.onEvent(DCAEvent.HideCoinSelector) },
             onCoinSelected = { id, name, symbol, iconUrl ->
                 viewModel.onEvent(DCAEvent.SelectCoin(id, name, symbol, iconUrl))
@@ -557,8 +563,8 @@ private fun DCAAmountInput(
         isError = isError,
         shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.5f),
-            focusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.5f),
+            unfocusedContainerColor = Slate900.copy(alpha = 0.5f),
+            focusedContainerColor = Slate900.copy(alpha = 0.5f),
             unfocusedBorderColor = colors.border.copy(alpha = 0.1f),
             focusedBorderColor = colors.accentBlue400
         )
@@ -655,31 +661,14 @@ private fun DCAScheduleCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(spacing.md), verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF8B5CF6), // Purple
-                                        Color(0xFF3B82F6)  // Blue
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.White.copy(alpha = 0.15f))
-                        )
-                        AsyncImage(
-                            model = schedule.coinIconUrl,
-                            contentDescription = null,
-                            modifier = Modifier.size(36.dp)
-                        )
-                    }
+                    CoinIconBox(
+                        iconUrl = schedule.coinIconUrl,
+                        contentDescription = null,
+                        size = 56.dp,
+                        iconSize = 36.dp,
+                        cornerRadius = 16.dp,
+                        borderColor = colors.accentPurple400
+                    )
                     Column {
                         Text(
                             text = "${schedule.coinSymbol} Auto-Buy",
@@ -1042,8 +1031,8 @@ private fun CoinSelectorBottomSheet(
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.5f),
-                    focusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.5f),
+                    unfocusedContainerColor = Slate900.copy(alpha = 0.5f),
+                    focusedContainerColor = Slate900.copy(alpha = 0.5f),
                     unfocusedBorderColor = colors.border.copy(alpha = 0.1f),
                     focusedBorderColor = colors.accentBlue400,
                     cursorColor = colors.accentBlue400
@@ -1080,19 +1069,14 @@ private fun CoinSelectorBottomSheet(
                                 modifier = Modifier.padding(vertical = spacing.md),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.White.copy(alpha = 0.05f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AsyncImage(
-                                        model = coin.iconUrl,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
+                                CoinIconBox(
+                                    iconUrl = coin.iconUrl,
+                                    contentDescription = null,
+                                    size = 40.dp,
+                                    iconSize = 24.dp,
+                                    cornerRadius = 12.dp,
+                                    borderColor = colors.accentPurple400
+                                )
                                 Spacer(modifier = Modifier.height(spacing.sm))
                                 Text(
                                     text = coin.symbol,
@@ -1130,19 +1114,14 @@ private fun CoinSelectorBottomSheet(
                             horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(colors.cardBackground.copy(alpha = 0.4f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = coin.iconUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
+                            CoinIconBox(
+                                iconUrl = coin.iconUrl,
+                                contentDescription = null,
+                                size = 44.dp,
+                                iconSize = 28.dp,
+                                cornerRadius = 10.dp,
+                                borderColor = colors.accentPurple400
+                            )
                             Spacer(modifier = Modifier.width(spacing.md))
                             Column {
                                 Text(

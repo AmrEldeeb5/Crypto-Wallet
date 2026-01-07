@@ -5,28 +5,31 @@ import com.example.valguard.app.core.domain.Result
 import io.ktor.client.call.body
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.statement.HttpResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 
 
 suspend inline fun <reified T> safeCall(
-    execute: () -> HttpResponse
-): Result<T, DataError.Remote>{
+    crossinline execute: suspend () -> HttpResponse
+): Result<T, DataError.Remote> = withContext(Dispatchers.IO) {
     val response = try {
         execute()
     } catch (e: SocketTimeoutException) {
-        return Result.Failure(DataError.Remote.REQUEST_TIMEOUT)
+        return@withContext Result.Failure(DataError.Remote.REQUEST_TIMEOUT)
     } catch (e: IOException){
-        return Result.Failure(DataError.Remote.NO_INTERNET)
+        return@withContext Result.Failure(DataError.Remote.NO_INTERNET)
     } catch (e: Exception){
         currentCoroutineContext().ensureActive()
         println("Network error: ${e.message}")
         e.printStackTrace()
-        return Result.Failure(DataError.Remote.UNKNOWN_ERROR)
+        return@withContext Result.Failure(DataError.Remote.UNKNOWN_ERROR)
     }
 
-    return responseToResult(response)
+    return@withContext responseToResult(response)
 }
 
 suspend inline fun <reified T> responseToResult(

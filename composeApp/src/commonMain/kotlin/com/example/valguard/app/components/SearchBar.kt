@@ -57,8 +57,6 @@ fun SearchBar(
     
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
             .background(colors.cardBackground.copy(alpha = 0.5f), shape)
             .border(1.dp, colors.cardBorder.copy(alpha = 0.5f), shape)
             .padding(horizontal = 12.dp, vertical = 8.dp),

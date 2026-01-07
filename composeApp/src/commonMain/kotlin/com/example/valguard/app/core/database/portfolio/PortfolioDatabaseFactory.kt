@@ -9,7 +9,7 @@ fun getPortfolioDatabase(
     builder: RoomDatabase.Builder<PortfolioDatabase>
 ): PortfolioDatabase {
     return builder
-        .fallbackToDestructiveMigration(dropAllTables = true)
+        .addMigrations(*PortfolioDatabaseMigrations.ALL_MIGRATIONS)
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
         .build()

@@ -1,22 +1,27 @@
 package com.example.valguard.app.coindetail.domain
 
+/**
+ * Coin detail data - all market fields are nullable
+ * If API doesn't provide data, UI should hide the field
+ */
 data class CoinDetailData(
     val id: String,
     val name: String,
     val symbol: String,
-    val iconUrl: String,
+    val iconUrl: String?,
     val price: Double,
     val change24h: Double,
-    val marketCapRank: Int,
-    val volume24h: Double,
-    val high24h: Double,
-    val low24h: Double,
-    val marketCap: Double = 0.0,
-    val circulatingSupply: Double = 0.0,
-    val allTimeHigh: Double = 0.0,
-    val allTimeLow: Double = 0.0,
+    // Nullable fields - only show if API provides them
+    val marketCapRank: Int? = null,
+    val volume24h: Double? = null,
+    val high24h: Double? = null,
+    val low24h: Double? = null,
+    val marketCap: Double? = null,
+    val circulatingSupply: Double? = null,
+    val allTimeHigh: Double? = null,
+    val allTimeLow: Double? = null,
     val maxSupply: Double? = null,
-    val description: String = "",
+    val description: String? = null,
     val priceHistory: List<PricePoint> = emptyList()
 )
 

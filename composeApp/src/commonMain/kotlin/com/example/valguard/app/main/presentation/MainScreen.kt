@@ -1,5 +1,8 @@
 package com.example.valguard.app.main.presentation
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,12 +48,14 @@ import com.example.valguard.app.components.ExpandableCoinCard
 import com.example.valguard.app.components.MoreMenuDropdown
 import com.example.valguard.app.components.PortfolioValueCard
 import com.example.valguard.app.components.PriceAlert
-import com.example.valguard.app.components.SearchBar
 import com.example.valguard.app.components.Tab
 import com.example.valguard.app.components.TabNavigation
 import com.example.valguard.app.components.Timeframe
 import com.example.valguard.app.components.UiCoinItem
 import com.example.valguard.app.components.activeCount
+import com.example.valguard.app.dca.presentation.DCAScreen
+import com.example.valguard.app.navigation.ScrollBehaviorState
+import com.example.valguard.app.navigation.rememberScrollBehaviorState
 import com.example.valguard.app.portfolio.presentation.PortfolioViewModel
 import com.example.valguard.app.portfolio.presentation.UiPortfolioCoinItem
 import com.example.valguard.app.watchlist.domain.WatchlistRepository
@@ -61,7 +69,8 @@ fun MainScreen(
     onBuyClick: (String) -> Unit,
     onSellClick: (String) -> Unit,
     onCoinClick: (String) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    scrollBehaviorState: ScrollBehaviorState = rememberScrollBehaviorState()
 ) {
     val colors = LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
@@ -95,60 +104,58 @@ fun MainScreen(
         }
     }
     
+    // Animated offset for smooth bottom navigation hide/show
+    val bottomNavOffset by animateDpAsState(
+        targetValue = if (scrollBehaviorState.isVisible) 0.dp else 120.dp, // Increased to fully hide bottom nav
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "BottomNavOffset"
+    )
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(colors.backgroundPrimary)
             .statusBarsPadding()
+            .nestedScroll(scrollBehaviorState.nestedScrollConnection)
     ) {
+        // Content area (behind header)
         Column(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Only show common header/tabs for Market, Portfolio, and Watchlist
-            if (activeBottomNav == BottomNavItem.MARKET || activeBottomNav == BottomNavItem.PORTFOLIO) {
-                // Header
-                ValguardHeader(
-                    marketCount = coinsState.coins.size,
-                    portfolioCount = portfolioState.coins.size,
-                    alertCount = alerts.activeCount(),
-                    onAlertClick = { showAlertModal = true },
-                    onMoreClick = { showMoreMenu = true }
-                )
-                
-                // Search bar
-                val searchPlaceholder = when (activeTab) {
-                    Tab.PORTFOLIO -> "Search your assets"
-                    else -> "Search cryptocurrencies"
-                }
-                SearchBar(
-                    query = coinsState.searchQuery,
-                    onQueryChange = { coinsViewModel.onSearchQueryChange(it) },
-                    placeholder = searchPlaceholder,
-                    modifier = Modifier.padding(vertical = spacing.sm)
-                )
-                
-                // Tab navigation
-                TabNavigation(
-                    activeTab = activeTab,
-                    onTabSelected = { tab ->
-                        activeTab = tab
-                        activeBottomNav = when (tab) {
-                            Tab.MARKET -> BottomNavItem.MARKET
-                            Tab.PORTFOLIO -> BottomNavItem.PORTFOLIO
-                            Tab.WATCHLIST -> activeBottomNav // Keep current nav if it's already Market/Portfolio
-                        }
-                    }
-                )
-                
-                Spacer(modifier = Modifier.height(spacing.sm))
-            }
+            // Top and Bottom padding animations
+            val topPadding by animateDpAsState(
+                targetValue = if (activeBottomNav == BottomNavItem.MARKET || activeBottomNav == BottomNavItem.PORTFOLIO) {
+                    if (scrollBehaviorState.isVisible) 170.dp else 0.dp
+                } else 0.dp,
+                animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                label = "TopPadding"
+            )
+
+            val bottomPadding by animateDpAsState(
+                targetValue = if (scrollBehaviorState.isVisible) 100.dp else 24.dp, // Reduce bottom padding when nav is hidden
+                animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                label = "BottomPadding"
+            )
+
+            val currentContentPadding = PaddingValues(
+                start = spacing.md,
+                end = spacing.md,
+                top = topPadding,
+                bottom = bottomPadding
+            )
             
             // Content based on active bottom nav
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(colors.backgroundPrimary) // Content background
+            ) {
                 when (activeBottomNav) {
                     BottomNavItem.DCA -> {
-                        com.example.valguard.app.dca.presentation.DCAScreen(
+                        DCAScreen(
                             onBack = { activeBottomNav = BottomNavItem.MARKET },
                             onNavigateToBuy = onBuyClick
                         )
@@ -174,6 +181,7 @@ fun MainScreen(
                                         watchlistIds = watchlistIds,
                                         expandedCoinId = expandedCoinId,
                                         selectedTimeframe = selectedTimeframe,
+                                        contentPadding = currentContentPadding,
                                         onCardClick = { coinId -> onCoinClick(coinId) },
                                         onTimeframeSelected = { selectedTimeframe = it },
                                         onSetAlertClick = { showAlertModal = true },
@@ -189,6 +197,7 @@ fun MainScreen(
                                         watchlistIds = watchlistIds,
                                         expandedCoinId = expandedCoinId,
                                         selectedTimeframe = selectedTimeframe,
+                                        contentPadding = currentContentPadding,
                                         onCardClick = { coinId -> onCoinClick(coinId) },
                                         onTimeframeSelected = { selectedTimeframe = it },
                                         onSetAlertClick = { showAlertModal = true },
@@ -202,6 +211,7 @@ fun MainScreen(
                                         watchlistIds = watchlistIds,
                                         expandedCoinId = expandedCoinId,
                                         selectedTimeframe = selectedTimeframe,
+                                        contentPadding = currentContentPadding,
                                         onCardClick = { coinId -> onCoinClick(coinId) },
                                         onTimeframeSelected = { selectedTimeframe = it },
                                         onSetAlertClick = { showAlertModal = true },
@@ -218,11 +228,70 @@ fun MainScreen(
             }
         }
         
-        // Bottom navigation with padding container
+        // Header overlay (on top of content)
+        // Uses animated height with clipToBounds so the entire header area (including background)
+        // properly disappears when scrolling down, rather than just offsetting the content
+        if (activeBottomNav == BottomNavItem.MARKET || activeBottomNav == BottomNavItem.PORTFOLIO) {
+            val headerHeight by animateDpAsState(
+                targetValue = if (scrollBehaviorState.isVisible) 170.dp else 0.dp,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMedium
+                ),
+                label = "HeaderHeight"
+            )
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(headerHeight)
+                    .align(Alignment.TopStart)
+                    .clipToBounds() // Clip content that overflows when height shrinks
+                    .background(colors.backgroundPrimary)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Search placeholder logic
+                    val searchPlaceholder = when (activeTab) {
+                        Tab.PORTFOLIO -> "Search your assets"
+                        else -> "Search cryptocurrencies"
+                    }
+
+                    // Header with integrated search
+                    ValguardHeader(
+                        searchQuery = coinsState.searchQuery,
+                        onSearchQueryChange = { coinsViewModel.onSearchQueryChange(it) },
+                        placeholder = searchPlaceholder,
+                        alertCount = alerts.activeCount(),
+                        onAlertClick = { showAlertModal = true },
+                        onMoreClick = { showMoreMenu = true }
+                    )
+
+                    // Tab navigation
+                    TabNavigation(
+                        activeTab = activeTab,
+                        onTabSelected = { tab ->
+                            activeTab = tab
+                            activeBottomNav = when (tab) {
+                                Tab.MARKET -> BottomNavItem.MARKET
+                                Tab.PORTFOLIO -> BottomNavItem.PORTFOLIO
+                                Tab.WATCHLIST -> activeBottomNav
+                            }
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(spacing.sm))
+                }
+            }
+        }
+
+        // Bottom navigation with padding container and smooth animation
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .offset(y = bottomNavOffset)
                 .padding(spacing.md)
         ) {
             CryptoBottomNavigation(
@@ -269,6 +338,7 @@ private fun MarketContent(
     watchlistIds: List<String>,
     expandedCoinId: String?,
     selectedTimeframe: Timeframe,
+    contentPadding: PaddingValues,
     onCardClick: (String) -> Unit,
     onTimeframeSelected: (Timeframe) -> Unit,
     onSetAlertClick: () -> Unit,
@@ -289,12 +359,7 @@ private fun MarketContent(
     } else {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
-            contentPadding = PaddingValues(
-                start = spacing.md,
-                end = spacing.md,
-                top = spacing.sm,
-                bottom = 100.dp  // Clear bottom nav
-            ),
+            contentPadding = contentPadding,
             modifier = Modifier.fillMaxSize()
         ) {
             items(coins, key = { it.id }) { coin ->
@@ -354,6 +419,7 @@ private fun PortfolioContent(
     watchlistIds: List<String>,
     expandedCoinId: String?,
     selectedTimeframe: Timeframe,
+    contentPadding: PaddingValues,
     onCardClick: (String) -> Unit,
     onTimeframeSelected: (Timeframe) -> Unit,
     onSetAlertClick: () -> Unit,
@@ -372,12 +438,7 @@ private fun PortfolioContent(
     
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
-        contentPadding = PaddingValues(
-            start = spacing.md,
-            end = spacing.md, 
-            top = spacing.sm,
-            bottom = 100.dp // Clear bottom nav
-        ),
+        contentPadding = contentPadding,
         modifier = Modifier.fillMaxSize()
     ) {
         // Portfolio value card
@@ -447,6 +508,7 @@ private fun WatchlistContent(
     watchlistIds: List<String>,
     expandedCoinId: String?,
     selectedTimeframe: Timeframe,
+    contentPadding: PaddingValues,
     onCardClick: (String) -> Unit,
     onTimeframeSelected: (Timeframe) -> Unit,
     onSetAlertClick: () -> Unit,
@@ -468,7 +530,7 @@ private fun WatchlistContent(
     } else {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
-            contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
+            contentPadding = contentPadding,
             modifier = Modifier.fillMaxSize()
         ) {
             items(coins, key = { it.id }) { coin ->

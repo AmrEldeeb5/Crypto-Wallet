@@ -18,10 +18,8 @@
 package com.example.valguard.app.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import com.example.valguard.app.realtime.domain.PriceDirection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,7 +31,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,14 +39,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.valguard.theme.LocalCryptoColors
-import com.example.valguard.theme.LocalCryptoShapes
-import com.example.valguard.theme.LocalCryptoSpacing
 import com.example.valguard.theme.LocalCryptoTypography
 import com.example.valguard.theme.AppTheme
 
@@ -72,6 +69,7 @@ val MinTouchTargetSize = 48.dp
 @Composable
 fun CoinCard(
     coin: UiCoinItem,
+    borderColor: Color,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
     showHoldings: Boolean = false,
@@ -79,8 +77,6 @@ fun CoinCard(
 ) {
     val colors = LocalCryptoColors.current
     val typography = LocalCryptoTypography.current
-    val spacing = LocalCryptoSpacing.current
-    val shapes = LocalCryptoShapes.current
     val dimensions = AppTheme.dimensions
 
     // Use sparkline color logic for neutral color support
@@ -127,19 +123,14 @@ fun CoinCard(
                 .padding(dimensions.cardPadding)
         ) {
             // Coin icon
-            Box(
-                modifier = Modifier
-                    .size(dimensions.coinIconSize)
-                    .clip(CircleShape)
-                    .background(colors.cardBackgroundElevated)
-            ) {
-                AsyncImage(
-                    model = coin.iconUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(dimensions.coinIconSize)
-                )
-            }
+            CoinIconBox(
+                iconUrl = coin.iconUrl,
+                contentDescription = null,
+                size = 56.dp,
+                iconSize = dimensions.coinIconSize,
+                cornerRadius = 16.dp,
+                borderColor = borderColor
+            )
 
             Spacer(modifier = Modifier.width(dimensions.itemSpacing))
 
@@ -148,12 +139,12 @@ fun CoinCard(
                 modifier = Modifier.weight(0.25f)
             ) {
                 Text(
-                    text = coin.symbol,
+                    text = coin.name,
                     style = typography.titleMedium,
                     color = colors.textPrimary
                 )
                 Text(
-                    text = coin.name,
+                    text = coin.symbol,
                     style = typography.bodyMedium,
                     color = colors.textSecondary
                 )

@@ -10,10 +10,18 @@ data class CompareState(
     val savedComparisons: UiState<List<SavedComparison>> = UiState.Loading.Initial,
     val showCoinSelector: CoinSelectorTarget? = null,
     val coinSearchQuery: String = "",
+    val availableCoins: List<CoinOption> = emptyList(),
     val isLoading: Boolean = false,
     val snackbarMessage: String? = null,
     val showSnackbar: Boolean = false,
     val error: String? = null
+)
+
+data class CoinOption(
+    val id: String,
+    val name: String,
+    val symbol: String,
+    val iconUrl: String
 )
 
 data class CoinSlot(
@@ -21,12 +29,13 @@ data class CoinSlot(
     val name: String,
     val symbol: String,
     val iconUrl: String,
-    val price: Double = 0.0,
-    val change24h: Double = 0.0,
-    val marketCap: Double = 0.0,
-    val volume24h: Double = 0.0,
-    val marketCapRank: Int = 0,
-    val circulatingSupply: Double = 0.0
+    // Nullable fields - only show if API provides them
+    val price: Double? = null,
+    val change24h: Double? = null,
+    val marketCap: Double? = null,
+    val volume24h: Double? = null,
+    val marketCapRank: Int? = null,
+    val circulatingSupply: Double? = null
 )
 
 enum class CoinSelectorTarget {
@@ -75,7 +84,7 @@ object ComparisonCalculator {
             change24hWinner = determineWinner(coin1.change24h, coin2.change24h, higherIsBetter = true),
             marketCapWinner = determineWinner(coin1.marketCap, coin2.marketCap, higherIsBetter = true),
             volumeWinner = determineWinner(coin1.volume24h, coin2.volume24h, higherIsBetter = true),
-            rankWinner = determineWinner(coin1.marketCapRank.toDouble(), coin2.marketCapRank.toDouble(), higherIsBetter = false),
+            rankWinner = determineWinner(coin1.marketCapRank?.toDouble(), coin2.marketCapRank?.toDouble(), higherIsBetter = false),
             priceDifference = calculatePercentageDifference(coin1.price, coin2.price),
             change24hDifference = calculateAbsoluteDifference(coin1.change24h, coin2.change24h),
             marketCapDifference = calculatePercentageDifference(coin1.marketCap, coin2.marketCap),
@@ -83,7 +92,11 @@ object ComparisonCalculator {
         )
     }
     
-    fun determineWinner(value1: Double, value2: Double, higherIsBetter: Boolean): MetricWinner {
+    fun determineWinner(value1: Double?, value2: Double?, higherIsBetter: Boolean): MetricWinner {
+        if (value1 == null && value2 == null) return MetricWinner.TIE
+        if (value1 == null) return MetricWinner.COIN_2
+        if (value2 == null) return MetricWinner.COIN_1
+        
         return when {
             value1 == value2 -> MetricWinner.TIE
             higherIsBetter -> if (value1 > value2) MetricWinner.COIN_1 else MetricWinner.COIN_2
@@ -91,12 +104,14 @@ object ComparisonCalculator {
         }
     }
     
-    fun calculatePercentageDifference(value1: Double, value2: Double): Double {
-        if (value2 == 0.0) return if (value1 == 0.0) 0.0 else 100.0
-        return ((value1 - value2) / value2) * 100
+    fun calculatePercentageDifference(value1: Double?, value2: Double?): Double {
+        val v1 = value1 ?: 0.0
+        val v2 = value2 ?: 0.0
+        if (v2 == 0.0) return if (v1 == 0.0) 0.0 else 100.0
+        return ((v1 - v2) / v2) * 100
     }
     
-    fun calculateAbsoluteDifference(value1: Double, value2: Double): Double {
-        return value1 - value2
+    fun calculateAbsoluteDifference(value1: Double?, value2: Double?): Double {
+        return (value1 ?: 0.0) - (value2 ?: 0.0)
     }
 }

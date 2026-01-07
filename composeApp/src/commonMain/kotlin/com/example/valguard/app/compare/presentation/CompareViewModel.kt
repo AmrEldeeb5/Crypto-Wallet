@@ -2,6 +2,7 @@ package com.example.valguard.app.compare.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.valguard.app.coins.data.repository.CoinGeckoRepository
 import com.example.valguard.app.compare.data.ComparisonRepository
 import com.example.valguard.app.compare.domain.SavedComparison
 import com.example.valguard.app.core.util.UiState
@@ -13,7 +14,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CompareViewModel(
-    private val comparisonRepository: ComparisonRepository
+    private val comparisonRepository: ComparisonRepository,
+    private val coinGeckoRepository: CoinGeckoRepository
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(CompareState())
@@ -21,6 +23,7 @@ class CompareViewModel(
     
     init {
         loadSavedComparisons()
+        loadAvailableCoins()
     }
     
     fun onEvent(event: CompareEvent) {
@@ -58,6 +61,22 @@ class CompareViewModel(
         }
     }
     
+    private fun loadAvailableCoins() {
+        viewModelScope.launch {
+            coinGeckoRepository.observeCoins().collect { coinEntities ->
+                val coinOptions = coinEntities.map { entity ->
+                    CoinOption(
+                        id = entity.id,
+                        name = entity.name,
+                        symbol = entity.symbol,
+                        iconUrl = entity.image ?: ""
+                    )
+                }
+                _state.update { it.copy(availableCoins = coinOptions) }
+            }
+        }
+    }
+    
     private fun showCoinSelector(target: CoinSelectorTarget) {
         _state.update { it.copy(showCoinSelector = target, coinSearchQuery = "") }
     }
@@ -73,36 +92,41 @@ class CompareViewModel(
     private fun selectCoin(coinId: String, name: String, symbol: String, iconUrl: String) {
         val target = _state.value.showCoinSelector ?: return
         
-        // Create a coin slot with mock data (in real app, would fetch from API)
-        val coinSlot = CoinSlot(
-            id = coinId,
-            name = name,
-            symbol = symbol,
-            iconUrl = iconUrl,
-            price = getMockPrice(coinId),
-            change24h = getMockChange(coinId),
-            marketCap = getMockMarketCap(coinId),
-            volume24h = getMockVolume(coinId),
-            marketCapRank = getMockRank(coinId),
-            circulatingSupply = getMockSupply(coinId)
-        )
-        
-        _state.update { currentState ->
-            val newState = when (target) {
-                CoinSelectorTarget.COIN_1 -> currentState.copy(coin1 = coinSlot)
-                CoinSelectorTarget.COIN_2 -> currentState.copy(coin2 = coinSlot)
-            }
+        viewModelScope.launch {
+            // Fetch real data from CoinGecko cache
+            val coinEntity = coinGeckoRepository.getCoin(coinId)
             
-            // Calculate comparison if both coins are selected
-            val comparisonData = if (newState.coin1 != null && newState.coin2 != null) {
-                ComparisonCalculator.calculateComparison(newState.coin1, newState.coin2)
-            } else null
-            
-            newState.copy(
-                comparisonData = comparisonData,
-                showCoinSelector = null,
-                coinSearchQuery = ""
+            val coinSlot = CoinSlot(
+                id = coinId,
+                name = name,
+                symbol = symbol,
+                iconUrl = iconUrl,
+                // Real data from API - null if not available
+                price = coinEntity?.currentPrice,
+                change24h = coinEntity?.priceChangePercentage24h,
+                marketCap = coinEntity?.marketCap,
+                volume24h = coinEntity?.totalVolume,
+                marketCapRank = coinEntity?.marketCapRank,
+                circulatingSupply = coinEntity?.circulatingSupply
             )
+            
+            _state.update { currentState ->
+                val newState = when (target) {
+                    CoinSelectorTarget.COIN_1 -> currentState.copy(coin1 = coinSlot)
+                    CoinSelectorTarget.COIN_2 -> currentState.copy(coin2 = coinSlot)
+                }
+                
+                // Calculate comparison if both coins are selected
+                val comparisonData = if (newState.coin1 != null && newState.coin2 != null) {
+                    ComparisonCalculator.calculateComparison(newState.coin1, newState.coin2)
+                } else null
+                
+                newState.copy(
+                    comparisonData = comparisonData,
+                    showCoinSelector = null,
+                    coinSearchQuery = ""
+                )
+            }
         }
     }
     
@@ -125,6 +149,23 @@ class CompareViewModel(
         val coin1 = _state.value.coin1 ?: return
         val coin2 = _state.value.coin2 ?: return
         
+        // Check for duplicates
+        val currentSaved = (_state.value.savedComparisons as? UiState.Success)?.data ?: emptyList()
+        val isDuplicate = currentSaved.any { saved ->
+            (saved.coin1Id == coin1.id && saved.coin2Id == coin2.id) ||
+            (saved.coin1Id == coin2.id && saved.coin2Id == coin1.id)
+        }
+
+        if (isDuplicate) {
+            _state.update { 
+                it.copy(
+                    snackbarMessage = "Comparison already saved",
+                    showSnackbar = true
+                )
+            }
+            return
+        }
+        
         viewModelScope.launch {
             comparisonRepository.saveComparison(
                 coin1Id = coin1.id,
@@ -138,7 +179,7 @@ class CompareViewModel(
             )
             _state.update { 
                 it.copy(
-                    snackbarMessage = "${coin1.symbol.uppercase()} vs ${coin2.symbol.uppercase()} saved",
+                    snackbarMessage = "Comparison saved",
                     showSnackbar = true
                 )
             }
@@ -146,40 +187,46 @@ class CompareViewModel(
     }
     
     private fun loadSavedComparison(comparison: SavedComparison) {
-        val coin1 = CoinSlot(
-            id = comparison.coin1Id,
-            name = comparison.coin1Name,
-            symbol = comparison.coin1Symbol,
-            iconUrl = comparison.coin1IconUrl,
-            price = getMockPrice(comparison.coin1Id),
-            change24h = getMockChange(comparison.coin1Id),
-            marketCap = getMockMarketCap(comparison.coin1Id),
-            volume24h = getMockVolume(comparison.coin1Id),
-            marketCapRank = getMockRank(comparison.coin1Id),
-            circulatingSupply = getMockSupply(comparison.coin1Id)
-        )
-        
-        val coin2 = CoinSlot(
-            id = comparison.coin2Id,
-            name = comparison.coin2Name,
-            symbol = comparison.coin2Symbol,
-            iconUrl = comparison.coin2IconUrl,
-            price = getMockPrice(comparison.coin2Id),
-            change24h = getMockChange(comparison.coin2Id),
-            marketCap = getMockMarketCap(comparison.coin2Id),
-            volume24h = getMockVolume(comparison.coin2Id),
-            marketCapRank = getMockRank(comparison.coin2Id),
-            circulatingSupply = getMockSupply(comparison.coin2Id)
-        )
-        
-        val comparisonData = ComparisonCalculator.calculateComparison(coin1, coin2)
-        
-        _state.update {
-            it.copy(
-                coin1 = coin1,
-                coin2 = coin2,
-                comparisonData = comparisonData
+        viewModelScope.launch {
+            // Fetch real data for both coins
+            val coin1Entity = coinGeckoRepository.getCoin(comparison.coin1Id)
+            val coin2Entity = coinGeckoRepository.getCoin(comparison.coin2Id)
+            
+            val coin1 = CoinSlot(
+                id = comparison.coin1Id,
+                name = comparison.coin1Name,
+                symbol = comparison.coin1Symbol,
+                iconUrl = comparison.coin1IconUrl,
+                price = coin1Entity?.currentPrice,
+                change24h = coin1Entity?.priceChangePercentage24h,
+                marketCap = coin1Entity?.marketCap,
+                volume24h = coin1Entity?.totalVolume,
+                marketCapRank = coin1Entity?.marketCapRank,
+                circulatingSupply = coin1Entity?.circulatingSupply
             )
+            
+            val coin2 = CoinSlot(
+                id = comparison.coin2Id,
+                name = comparison.coin2Name,
+                symbol = comparison.coin2Symbol,
+                iconUrl = comparison.coin2IconUrl,
+                price = coin2Entity?.currentPrice,
+                change24h = coin2Entity?.priceChangePercentage24h,
+                marketCap = coin2Entity?.marketCap,
+                volume24h = coin2Entity?.totalVolume,
+                marketCapRank = coin2Entity?.marketCapRank,
+                circulatingSupply = coin2Entity?.circulatingSupply
+            )
+            
+            val comparisonData = ComparisonCalculator.calculateComparison(coin1, coin2)
+            
+            _state.update {
+                it.copy(
+                    coin1 = coin1,
+                    coin2 = coin2,
+                    comparisonData = comparisonData
+                )
+            }
         }
     }
     
@@ -197,60 +244,5 @@ class CompareViewModel(
                 comparisonData = null
             )
         }
-    }
-    
-    // Mock data functions (in real app, would fetch from API)
-    private fun getMockPrice(coinId: String): Double = when (coinId) {
-        "bitcoin" -> 67234.56
-        "ethereum" -> 3456.78
-        "solana" -> 145.23
-        "cardano" -> 0.45
-        "dogecoin" -> 0.12
-        else -> 100.0
-    }
-    
-    private fun getMockChange(coinId: String): Double = when (coinId) {
-        "bitcoin" -> 2.34
-        "ethereum" -> -1.23
-        "solana" -> 5.67
-        "cardano" -> -0.89
-        "dogecoin" -> 12.34
-        else -> 0.0
-    }
-    
-    private fun getMockMarketCap(coinId: String): Double = when (coinId) {
-        "bitcoin" -> 1320000000000.0
-        "ethereum" -> 415000000000.0
-        "solana" -> 63000000000.0
-        "cardano" -> 16000000000.0
-        "dogecoin" -> 17000000000.0
-        else -> 1000000000.0
-    }
-    
-    private fun getMockVolume(coinId: String): Double = when (coinId) {
-        "bitcoin" -> 28000000000.0
-        "ethereum" -> 15000000000.0
-        "solana" -> 2500000000.0
-        "cardano" -> 450000000.0
-        "dogecoin" -> 800000000.0
-        else -> 100000000.0
-    }
-    
-    private fun getMockRank(coinId: String): Int = when (coinId) {
-        "bitcoin" -> 1
-        "ethereum" -> 2
-        "solana" -> 5
-        "cardano" -> 9
-        "dogecoin" -> 8
-        else -> 100
-    }
-    
-    private fun getMockSupply(coinId: String): Double = when (coinId) {
-        "bitcoin" -> 19600000.0
-        "ethereum" -> 120000000.0
-        "solana" -> 435000000.0
-        "cardano" -> 35000000000.0
-        "dogecoin" -> 143000000000.0
-        else -> 1000000000.0
     }
 }

@@ -14,7 +14,7 @@ actual fun formatFiat(amount: Double, showDecimal: Boolean): String {
 }
 
 actual fun formatCoinUnit(amount: Double, symbol: String): String {
-    return DecimalFormat("0.00000000").format(amount) + " $symbol"
+    return "${amount.formatCrypto()} ${symbol.uppercase()}"
 }
 
 actual fun formatPercentage(amount: Double): String {

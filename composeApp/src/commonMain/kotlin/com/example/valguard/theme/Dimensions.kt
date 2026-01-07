@@ -132,7 +132,7 @@ fun calculateDimensions(screenWidthDp: Int): Dimensions {
     return when {
         // Extremely small screens (< 320dp) - fallback to small phone dimensions
         screenWidthDp < 320 -> {
-            println("⚠️ Valguard: Screen width ${screenWidthDp}dp is below minimum supported size (320dp). Using small phone dimensions.")
+            // Screen below minimum supported size, using small phone dimensions
             createSmallPhoneDimensions(scaleFactor)
         }
         // Small phones (320-360dp)

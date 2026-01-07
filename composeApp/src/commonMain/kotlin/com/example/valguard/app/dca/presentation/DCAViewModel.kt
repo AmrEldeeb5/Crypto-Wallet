@@ -2,6 +2,8 @@ package com.example.valguard.app.dca.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.valguard.app.coins.data.mapper.toCoinModel
+import com.example.valguard.app.coins.data.repository.CoinGeckoRepository
 import com.example.valguard.app.core.util.UiState
 import com.example.valguard.app.dca.data.DCARepository
 import com.example.valguard.app.dca.domain.DCAFrequency
@@ -14,7 +16,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DCAViewModel(
-    private val dcaRepository: DCARepository
+    private val dcaRepository: DCARepository,
+    private val coinGeckoRepository: CoinGeckoRepository
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(DCAState())
@@ -22,6 +25,24 @@ class DCAViewModel(
     
     init {
         loadSchedules()
+        observeCoins()
+    }
+    
+    private fun observeCoins() {
+        viewModelScope.launch {
+            coinGeckoRepository.observeCoins().collect { entities ->
+                val coins = entities.map { entity ->
+                    DCASelectableCoin(
+                        id = entity.id,
+                        name = entity.name,
+                        symbol = entity.symbol,
+                        iconUrl = entity.image ?: "",
+                        price = entity.currentPrice
+                    )
+                }
+                _state.update { it.copy(availableCoins = coins) }
+            }
+        }
     }
     
     fun onEvent(event: DCAEvent) {
@@ -233,3 +254,14 @@ class DCAViewModel(
         }
     }
 }
+
+/**
+ * Selectable coin for DCA screen
+ */
+data class DCASelectableCoin(
+    val id: String,
+    val name: String,
+    val symbol: String,
+    val iconUrl: String,
+    val price: Double?
+)

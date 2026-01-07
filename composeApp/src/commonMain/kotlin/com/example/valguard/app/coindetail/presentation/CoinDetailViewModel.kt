@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.valguard.app.coindetail.domain.ChartTimeframe
 import com.example.valguard.app.coindetail.domain.CoinDetailData
 import com.example.valguard.app.coindetail.domain.CoinHoldings
+import com.example.valguard.app.coins.data.repository.CoinGeckoRepository
 import com.example.valguard.app.coins.domain.usecase.GetCoinDetailsUseCase
 import com.example.valguard.app.coins.domain.usecase.GetCoinPriceHistoryUseCase
 import com.example.valguard.app.components.ChartPoint
@@ -25,7 +26,8 @@ class CoinDetailViewModel(
     private val getCoinDetailsUseCase: GetCoinDetailsUseCase,
     private val getCoinPriceHistoryUseCase: GetCoinPriceHistoryUseCase,
     private val portfolioRepository: PortfolioRepository,
-    private val watchlistRepository: WatchlistRepository
+    private val watchlistRepository: WatchlistRepository,
+    private val coinGeckoRepository: CoinGeckoRepository
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(CoinDetailState())
@@ -47,6 +49,7 @@ class CoinDetailViewModel(
             is CoinDetailEvent.Retry -> retry()
             is CoinDetailEvent.ShowAlertModal -> _state.update { it.copy(showAlertModal = true) }
             is CoinDetailEvent.HideAlertModal -> _state.update { it.copy(showAlertModal = false) }
+            is CoinDetailEvent.DismissSnackbar -> _state.update { it.copy(showSnackbar = false, snackbarMessage = null) }
             else -> { /* Navigation events handled by UI */ }
         }
     }
@@ -67,18 +70,15 @@ class CoinDetailViewModel(
     }
     
     private fun loadCoin(coinId: String, isRefresh: Boolean = false) {
-        // Set Loading state - use Refreshing if we have data, Initial otherwise
-        // Reset chart data when loading a new coin to ensure skeleton is shown
         val isNewCoin = coinId != _state.value.coinId
         _state.update { 
             it.copy(
                 coinId = coinId,
-                // Reset chart data for new coin to show skeleton
                 chartData = if (isNewCoin) emptyMap() else it.chartData,
                 coinData = if (isRefresh && it.coinData is UiState.Success) {
                     UiState.Loading.Refreshing
                 } else if (it.coinData is UiState.Success && !isNewCoin) {
-                    it.coinData // Keep existing data during refresh
+                    it.coinData
                 } else {
                     UiState.Loading.Initial
                 }
@@ -86,16 +86,21 @@ class CoinDetailViewModel(
         }
         
         viewModelScope.launch {
-            // Use runCatching to guarantee all code paths exit Loading state
             runCatching {
                 getCoinDetailsUseCase.execute(coinId)
             }.onSuccess { result ->
                 when (result) {
                     is com.example.valguard.app.core.domain.Result.Success -> {
                         val coinModel = result.data
-                        // Generate mock rank based on coin id hash (consistent per coin)
-                        val mockRank = (coinModel.coin.id.hashCode().and(0x7FFFFFFF) % 100) + 1
                         
+                        // Fetch detailed data from CoinGecko (description, etc.)
+                        getCoinDetailsUseCase.refreshDetail(coinId)
+                        val description = getCoinDetailsUseCase.getDescription(coinId)
+                        
+                        // Get cached coin entity for full market data
+                        val coinEntity = coinGeckoRepository.getCoin(coinId)
+                        
+                        // Build CoinDetailData from REAL API data only
                         val coinDetailData = CoinDetailData(
                             id = coinModel.coin.id,
                             name = coinModel.coin.name,
@@ -103,25 +108,22 @@ class CoinDetailViewModel(
                             iconUrl = coinModel.coin.iconUrl,
                             price = coinModel.price,
                             change24h = coinModel.change,
-                            marketCapRank = mockRank,
-                            volume24h = coinModel.price * 1_000_000,
-                            high24h = coinModel.price * 1.05,
-                            low24h = coinModel.price * 0.95,
-                            marketCap = coinModel.price * 19_500_000,
-                            circulatingSupply = 19_500_000.0,
-                            allTimeHigh = coinModel.price * 1.5,
-                            allTimeLow = coinModel.price * 0.1,
-                            maxSupply = 21_000_000.0,
-                            description = "A decentralized digital currency that enables instant payments to anyone, anywhere in the world."
+                            // Real data from CoinGecko - null if not available
+                            marketCapRank = coinEntity?.marketCapRank,
+                            volume24h = coinEntity?.totalVolume,
+                            high24h = coinEntity?.high24h,
+                            low24h = coinEntity?.low24h,
+                            marketCap = coinEntity?.marketCap,
+                            circulatingSupply = coinEntity?.circulatingSupply,
+                            allTimeHigh = coinEntity?.ath,
+                            allTimeLow = coinEntity?.atl,
+                            maxSupply = coinEntity?.maxSupply,
+                            description = description
                         )
                         
-                        // Update state to Success
                         _state.update { it.copy(coinData = UiState.Success(coinDetailData), isOffline = false) }
                         
-                        // Fetch chart data for current timeframe
                         fetchPriceHistory(coinModel.coin.id, _state.value.selectedTimeframe)
-                        
-                        // Load holdings after coin data is loaded
                         loadHoldings(coinId, coinModel.price)
                     }
                     is com.example.valguard.app.core.domain.Result.Failure -> {
@@ -134,7 +136,6 @@ class CoinDetailViewModel(
                     }
                 }
             }.onFailure { throwable ->
-                // Handles exceptions, cancellation, etc. - always exits Loading
                 _state.update { 
                     it.copy(
                         coinData = UiState.Error(throwable.message ?: "An error occurred"),
@@ -143,14 +144,12 @@ class CoinDetailViewModel(
                 }
             }
             
-            // Check watchlist status
             checkWatchlistStatus(coinId)
         }
     }
     
     private fun fetchPriceHistory(coinId: String, timeframe: ChartTimeframe) {
         viewModelScope.launch {
-            // Use Initial loading for chart data
             _state.update { 
                 it.copy(chartData = it.chartData + (timeframe to UiState.Loading.Initial))
             }
@@ -161,7 +160,6 @@ class CoinDetailViewModel(
                 when (result) {
                     is com.example.valguard.app.core.domain.Result.Success -> {
                         val history = result.data.sortedBy { it.timestamp }
-                        // Map PriceModel to ChartPoint with timestamp and price
                         val chartPoints = history.map { priceModel -> 
                             ChartPoint(
                                 timestamp = priceModel.timestamp,
@@ -232,13 +230,10 @@ class CoinDetailViewModel(
 
     private fun selectTimeframe(timeframe: ChartTimeframe) {
         val currentState = _state.value.chartData[timeframe]
-        // Allow re-fetch if no data exists OR if previous attempt failed
-        // Set to Loading immediately when re-fetching to show skeleton
         if (currentState == null || currentState is UiState.Error) {
             _state.update { 
                 it.copy(
                     selectedTimeframe = timeframe,
-                    // Set to Loading immediately to show skeleton while fetching
                     chartData = it.chartData + (timeframe to UiState.Loading.Initial)
                 )
             }
@@ -256,10 +251,24 @@ class CoinDetailViewModel(
             try {
                 if (isCurrentlyInWatchlist) {
                     watchlistRepository.removeFromWatchlist(coinId)
+                    // Optional: "Removed from Watchlist" (User requested stronger feedback here, reusing snackbar logic for consistency, maybe different text in future)
+                    _state.update { 
+                        it.copy(
+                            isInWatchlist = false,
+                            snackbarMessage = "Removed from Watchlist",
+                            showSnackbar = true 
+                        ) 
+                    }
                 } else {
                     watchlistRepository.addToWatchlist(coinId)
+                    _state.update { 
+                        it.copy(
+                            isInWatchlist = true,
+                            snackbarMessage = "Added to Watchlist",
+                            showSnackbar = true
+                        ) 
+                    }
                 }
-                _state.update { it.copy(isInWatchlist = !isCurrentlyInWatchlist) }
             } catch (_: Exception) {
                 // Failed to toggle watchlist
             }

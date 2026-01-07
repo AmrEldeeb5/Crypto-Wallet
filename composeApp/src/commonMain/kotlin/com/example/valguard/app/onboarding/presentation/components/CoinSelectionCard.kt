@@ -39,9 +39,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -58,6 +60,7 @@ import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoAccessibility
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
+import com.example.valguard.app.components.AutoResizingText
 import org.jetbrains.compose.resources.painterResource
 
 /**
@@ -176,9 +179,9 @@ fun CoinSelectionCard(
 
             Spacer(modifier = Modifier.height(dimensions.smallSpacing))
 
-            // Coin symbol
-            Text(
-                text = coin.symbol,
+            // Coin name (Primary, Large)
+            AutoResizingText(
+                text = coin.name,
                 style = typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected) Color.White else colors.textPrimary,
@@ -187,9 +190,9 @@ fun CoinSelectionCard(
 
             Spacer(modifier = Modifier.height(dimensions.smallSpacing / 2))
 
-            // Coin name
-            Text(
-                text = coin.name,
+            // Coin symbol (Secondary, Small)
+            AutoResizingText(
+                text = coin.symbol,
                 style = typography.bodySmall,
                 color = if (isSelected) Color.White.copy(alpha = 0.8f) else colors.textSecondary,
                 modifier = Modifier.align(Alignment.Start)
@@ -197,5 +200,7 @@ fun CoinSelectionCard(
         }
     }
 }
+
+
 
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,10 +26,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
+
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Star
+
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,13 +49,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -63,18 +70,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.example.valguard.app.compare.domain.SavedComparison
+import com.example.valguard.app.components.CoinIconBox
 import com.example.valguard.app.components.ErrorState
 import com.example.valguard.app.components.SkeletonCard
 import com.example.valguard.app.core.util.UiState
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoSpacing
+import com.example.valguard.app.components.AutoResizingText
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.pow
+import org.jetbrains.compose.resources.painterResource
+import valguard.composeapp.generated.resources.Res
+import valguard.composeapp.generated.resources.solar__bookmark_bold
+import valguard.composeapp.generated.resources.solar__bookmark_linear
+import valguard.composeapp.generated.resources.solar__trash_bin_minimalistic_outline
 
 // Locked row height for consistent spacing
 private val ComparisonRowHeight = 56.dp
+// Padding to clear the floating bottom navigation
+private val BottomNavPadding = 100.dp
 
 @Composable
 fun CompareScreen() {
@@ -99,11 +114,14 @@ fun CompareScreen() {
     
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = BottomNavPadding)
+            ) { data ->
                 Snackbar(
                     snackbarData = data,
                     containerColor = colors.accentBlue500,
-                    contentColor = androidx.compose.ui.graphics.Color.White,
+                    contentColor = Color.White,
                     shape = RoundedCornerShape(12.dp)
                 )
             }
@@ -118,12 +136,29 @@ fun CompareScreen() {
                 start = spacing.md,
                 end = spacing.md,
                 top = spacing.md,
-                bottom = 100.dp // Clear floating bottom nav
+                bottom = BottomNavPadding
             ),
             verticalArrangement = Arrangement.spacedBy(spacing.md)
         ) {
             item {
-                CompareHeader()
+                // Check if current comparison is saved
+                val isSaved = remember(state.coin1, state.coin2, state.savedComparisons) {
+                    val currentCoin1 = state.coin1
+                    val currentCoin2 = state.coin2
+                    val savedList = (state.savedComparisons as? UiState.Success)?.data ?: emptyList()
+                    
+                    if (currentCoin1 != null && currentCoin2 != null) {
+                        savedList.any { saved ->
+                            (saved.coin1Id == currentCoin1.id && saved.coin2Id == currentCoin2.id) ||
+                            (saved.coin1Id == currentCoin2.id && saved.coin2Id == currentCoin1.id)
+                        }
+                    } else false
+                }
+
+                CompareHeader(
+                    isSaved = isSaved,
+                    onToggleSave = { viewModel.onEvent(CompareEvent.SaveComparison) }
+                )
             }
             
             item {
@@ -163,8 +198,12 @@ fun CompareScreen() {
                             Text("Clear", color = colors.textSecondary.copy(alpha = 0.7f))
                         }
 
+                        val haptic = LocalHapticFeedback.current
                         Button(
-                            onClick = { viewModel.onEvent(CompareEvent.SaveComparison) },
+                            onClick = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.onEvent(CompareEvent.SaveComparison) 
+                            },
                             modifier = Modifier
                                 .weight(1f)
                                 .shadow(
@@ -175,6 +214,7 @@ fun CompareScreen() {
                             colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                             contentPadding = PaddingValues(0.dp)
                         ) {
+                            val haptic = LocalHapticFeedback.current // Re-declare or use parent scope if possible, but localized is fine for composition
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -189,7 +229,7 @@ fun CompareScreen() {
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        imageVector = Icons.Default.Star,
+                                        painter = painterResource(Res.drawable.solar__bookmark_bold),
                                         contentDescription = null,
                                         modifier = Modifier.size(18.dp),
                                         tint = androidx.compose.ui.graphics.Color.White
@@ -232,37 +272,83 @@ fun CompareScreen() {
 
 
 @Composable
-private fun CompareHeader() {
+private fun CompareHeader(
+    isSaved: Boolean = false,
+    onToggleSave: () -> Unit = {}
+) {
     val colors = LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
     
-    Column {
-        Text(
-            text = "Compare Coins",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = colors.textPrimary
-        )
-        Text(
-            text = "Real-time market comparison",
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.textSecondary.copy(alpha = 0.8f)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Compare Coins",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = colors.textPrimary
+            )
+            Text(
+                text = "Real-time market comparison",
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary.copy(alpha = 0.8f)
+            )
+            
+            Spacer(modifier = Modifier.height(spacing.sm))
+            
+            // Identity Divider
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.15f)
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(colors.accentBlue400, colors.accentPurple400)
+                        )
+                    )
+            )
+        }
+
+// Bookmark Button with Gradient Border/Fill
+        val borderGradient = Brush.linearGradient(
+            colors = listOf(colors.accentBlue400, colors.accentPurple400)
         )
         
-        Spacer(modifier = Modifier.height(spacing.sm))
+        val haptic = LocalHapticFeedback.current
         
-        // Identity Divider
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.15f)
-                .height(3.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(colors.accentBlue400, colors.accentPurple400)
-                    )
+                .clip(RoundedCornerShape(12.dp))
+                .then(
+                    if (isSaved) {
+                        Modifier.background(borderGradient)
+                    } else {
+                        Modifier.background(colors.cardBackground.copy(alpha = 0.3f))
+                    }
                 )
-        )
+                .border(
+                    width = 1.dp,
+                    brush = borderGradient,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onToggleSave() 
+                }
+                .padding(10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = if (isSaved) painterResource(Res.drawable.solar__bookmark_bold) else painterResource(Res.drawable.solar__bookmark_linear),
+                contentDescription = if (isSaved) "Remove from saved" else "Save comparison",
+                tint = if (isSaved) Color.White else colors.textSecondary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -299,7 +385,7 @@ private fun CoinSelectorRow(
 @Composable
 private fun CoinSelectorCard(
     coin: CoinSlot?,
-    borderColor: androidx.compose.ui.graphics.Color,
+    borderColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -321,19 +407,19 @@ private fun CoinSelectorCard(
         animationSpec = tween(500),
         label = "glowAlpha"
     )
-    
+
     Box(
         modifier = modifier
             .scale(scale)
-            .then(
-                if (isSelected) {
-                    Modifier.shadow(
-                        elevation = 8.dp,
-                        shape = shape,
-                        spotColor = borderColor.copy(alpha = 0.3f)
-                    )
-                } else Modifier
-            )
+//            .then(
+//                if (isSelected) {
+//                    Modifier.shadow(
+//                        elevation = 8.dp,
+//                        shape = shape,
+//                        spotColor = borderColor.copy(alpha = 0.3f)
+//                    )
+//                } else Modifier
+//            )
             .clip(shape)
             .background(colors.cardBackground.copy(alpha = 0.5f))
             .border(
@@ -351,41 +437,34 @@ private fun CoinSelectorCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Icon Box with accent glow
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(borderColor.copy(alpha = 0.2f), borderColor.copy(alpha = 0.05f))
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AsyncImage(
-                        model = coin.iconUrl,
-                        contentDescription = "${coin.name} icon",
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
+                CoinIconBox(
+                    iconUrl = coin.iconUrl,
+                    contentDescription = "${coin.name} icon",
+                    size = 56.dp,
+                    iconSize = 32.dp,
+                    cornerRadius = 16.dp,
+                    borderColor = borderColor
+                )
                 
                 Column {
-                    Text(
+                    AutoResizingText(
                         text = coin.name,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = colors.textPrimary
+                        color = colors.textPrimary,
+                        maxLines = 1
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
+                        AutoResizingText(
                             text = coin.symbol.uppercase(),
                             style = MaterialTheme.typography.labelSmall,
-                            color = colors.textSecondary.copy(alpha = 0.8f)
+                            color = colors.textSecondary.copy(alpha = 0.8f),
+                            maxLines = 1
                         )
                         Spacer(modifier = Modifier.width(spacing.xs))
                         // Mini price context
-                        Text(
-                            text = "$${formatPrice(coin.price)}",
+                        AutoResizingText(
+                            text = formatPrice(coin.price),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,
                             color = colors.textSecondary.copy(alpha = 0.5f)
@@ -456,8 +535,8 @@ private fun ComparisonTable(
                         "${formatPercentage(coin2.change24h)}%", 
                         comparisonData.change24hWinner,
                         isChange = true,
-                        pos1 = coin1.change24h > 0,
-                        pos2 = coin2.change24h > 0
+                        pos1 = (coin1.change24h ?: 0.0) > 0,
+                        pos2 = (coin2.change24h ?: 0.0) > 0
                     )
                 },
                 "Market Cap" to {
@@ -622,7 +701,7 @@ private fun generateVerdict(
             append(liquidityLeader.uppercase())
         }
         append(" dominates the ")
-        withStyle(SpanStyle(color = androidx.compose.ui.graphics.Color(0xFF4CAF50))) { // Greenish
+        withStyle(SpanStyle(color = Color(0xFF4CAF50))) { // Greenish
             append("market")
         }
         append(", while ")
@@ -630,7 +709,7 @@ private fun generateVerdict(
             append(growthLeader.uppercase())
         }
         append(" shows stronger ")
-        withStyle(SpanStyle(color = androidx.compose.ui.graphics.Color(0xFF2196F3))) { // Blueish
+        withStyle(SpanStyle(color = Color(0xFF2196F3))) { // Blueish
             append("price momentum")
         }
         append(" today.")
@@ -646,17 +725,17 @@ private fun MetricValues(
     isRank: Boolean = false,
     pos1: Boolean = true,
     pos2: Boolean = true,
-    raw1: Double = 0.0,
-    raw2: Double = 0.0,
+    raw1: Double? = 0.0,
+    raw2: Double? = 0.0,
     showBar: Boolean = false
 ) {
     val colors = LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
 
     // Calculate bar fractions relative to max
-    val maxVal = maxOf(raw1, raw2).coerceAtLeast(1.0)
-    val frac1 = (raw1 / maxVal).toFloat().coerceIn(0f, 1f)
-    val frac2 = (raw2 / maxVal).toFloat().coerceIn(0f, 1f)
+    val maxVal = maxOf(raw1 ?: 0.0, raw2 ?: 0.0).coerceAtLeast(1.0)
+    val frac1 = ((raw1 ?: 0.0) / maxVal).toFloat().coerceIn(0f, 1f)
+    val frac2 = ((raw2 ?: 0.0) / maxVal).toFloat().coerceIn(0f, 1f)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -688,11 +767,11 @@ private fun MetricValues(
 private fun MetricValueCell(
     value: String,
     isWinner: Boolean,
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
     modifier: Modifier = Modifier,
     barFraction: Float = 0f,
     isRank: Boolean = false,
-    rankUp: Boolean = false // Not used effectively for rank yet without diff logic, keeping simple
+    @Suppress("UNUSED_PARAMETER") rankUp: Boolean = false
 ) {
     val colors = LocalCryptoColors.current
 
@@ -702,7 +781,7 @@ private fun MetricValueCell(
         label = "winnerAlpha"
     )
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .then(
@@ -724,46 +803,37 @@ private fun MetricValueCell(
             ),
         contentAlignment = Alignment.Center
     ) {
-        // Background Bar
-        if (barFraction > 0f) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .align(Alignment.CenterStart)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(barFraction)
-                        .height(4.dp)
-                        .align(Alignment.BottomStart)
-                        .background(color.copy(alpha = 0.2f), RoundedCornerShape(2.dp))
-                )
-            }
-        }
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             // Crown removed per feedback - rank pill treatment is sufficient emphasis
             
+            val initialTextStyle = MaterialTheme.typography.bodyMedium
+            var textStyle by remember(value) { mutableStateOf(initialTextStyle) }
+            var readyToDraw by remember(value) { mutableStateOf(false) }
+
             Text(
                 text = value,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isWinner) FontWeight.Black else FontWeight.Medium, // Bolder for winner
+                style = textStyle,
+                fontWeight = if (isWinner) FontWeight.Bold else FontWeight.Medium, // Bolder for winner
                 color = color.copy(alpha = animatedAlpha),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                softWrap = false,
+                onTextLayout = { textLayoutResult ->
+                    if (textLayoutResult.didOverflowWidth) {
+                        textStyle = textStyle.copy(fontSize = textStyle.fontSize * 0.95)
+                    } else {
+                        readyToDraw = true
+                    }
+                },
+                modifier = Modifier.drawWithContent {
+                    if (readyToDraw) drawContent()
+                }
             )
             
-            if (isWinner && !isRank) {
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Default.CheckCircle, // "Leading" badge
-                    contentDescription = "Winner",
-                    tint = colors.accentBlue400,
-                    modifier = Modifier.size(14.dp)
-                )
-            }
+
         }
     }
 }
@@ -890,20 +960,23 @@ private fun SavedComparisonCard(
             ) {
                 // Stacked Icons Pair
                 Box(modifier = Modifier.size(48.dp)) {
-                    AsyncImage(
-                        model = comparison.coin1IconUrl,
+                    CoinIconBox(
+                        iconUrl = comparison.coin1IconUrl,
                         contentDescription = null,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .align(Alignment.TopStart)
+                        size = 32.dp,
+                        iconSize = 20.dp,
+                        cornerRadius = 8.dp,
+                        borderColor = colors.accentBlue400,
+                        modifier = Modifier.align(Alignment.TopStart)
                     )
-                    AsyncImage(
-                        model = comparison.coin2IconUrl,
+                    CoinIconBox(
+                        iconUrl = comparison.coin2IconUrl,
                         contentDescription = null,
+                        size = 32.dp,
+                        iconSize = 20.dp,
+                        cornerRadius = 8.dp,
+                        borderColor = colors.accentPurple400,
                         modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(8.dp))
                             .align(Alignment.BottomEnd)
                             .border(2.dp, colors.cardBackground, RoundedCornerShape(8.dp))
                     )
@@ -931,7 +1004,7 @@ private fun SavedComparisonCard(
                     .background(colors.loss.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
             ) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    painter = painterResource(Res.drawable.solar__trash_bin_minimalistic_outline),
                     contentDescription = "Delete",
                     tint = colors.loss,
                     modifier = Modifier.size(16.dp)
@@ -957,17 +1030,11 @@ private fun CoinSelectorModal(
     val colors = LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
     
-    // Mock coin list (in real app, would come from repository)
-    val coins = listOf(
-        CoinOption("bitcoin", "Bitcoin", "BTC", "https://assets.coingecko.com/coins/images/1/large/bitcoin.png"),
-        CoinOption("ethereum", "Ethereum", "ETH", "https://assets.coingecko.com/coins/images/279/large/ethereum.png"),
-        CoinOption("solana", "Solana", "SOL", "https://assets.coingecko.com/coins/images/4128/large/solana.png"),
-        CoinOption("cardano", "Cardano", "ADA", "https://assets.coingecko.com/coins/images/975/large/cardano.png"),
-        CoinOption("dogecoin", "Dogecoin", "DOGE", "https://assets.coingecko.com/coins/images/5/large/dogecoin.png"),
-        CoinOption("ripple", "XRP", "XRP", "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png"),
-        CoinOption("polkadot", "Polkadot", "DOT", "https://assets.coingecko.com/coins/images/12171/large/polkadot.png"),
-        CoinOption("avalanche-2", "Avalanche", "AVAX", "https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png")
-    )
+    val viewModel = koinViewModel<CompareViewModel>()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    
+    // Use real coins from repository
+    val coins = state.availableCoins
     
     val filteredCoins = if (searchQuery.isEmpty()) {
         coins
@@ -1035,13 +1102,6 @@ private fun CoinSelectorModal(
     }
 }
 
-private data class CoinOption(
-    val id: String,
-    val name: String,
-    val symbol: String,
-    val iconUrl: String
-)
-
 @Composable
 private fun CoinOptionItem(
     coin: CoinOption,
@@ -1061,10 +1121,13 @@ private fun CoinOptionItem(
             horizontalArrangement = Arrangement.spacedBy(spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = coin.iconUrl,
+            CoinIconBox(
+                iconUrl = coin.iconUrl,
                 contentDescription = "${coin.name} icon",
-                modifier = Modifier.size(40.dp)
+                size = 40.dp,
+                iconSize = 24.dp,
+                cornerRadius = 10.dp,
+                borderColor = colors.accentPurple400
             )
             Column {
                 Text(
@@ -1083,7 +1146,8 @@ private fun CoinOptionItem(
     }
 }
 
-private fun formatPrice(price: Double): String {
+private fun formatPrice(price: Double?): String {
+    if (price == null) return "N/A"
     return if (price >= 1) {
         "\$${formatDecimal(price, 2)}"
     } else {
@@ -1091,12 +1155,14 @@ private fun formatPrice(price: Double): String {
     }
 }
 
-private fun formatPercentage(value: Double): String {
+private fun formatPercentage(value: Double?): String {
+    if (value == null) return "N/A"
     val sign = if (value > 0) "+" else ""
     return "$sign${formatDecimal(value, 2)}"
 }
 
-private fun formatLargeNumber(value: Double): String {
+private fun formatLargeNumber(value: Double?): String {
+    if (value == null) return "N/A"
     return when {
         value >= 1_000_000_000_000 -> "\$${formatDecimal(value / 1_000_000_000_000, 2)}T"
         value >= 1_000_000_000 -> "\$${formatDecimal(value / 1_000_000_000, 2)}B"

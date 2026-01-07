@@ -1,6 +1,5 @@
 package com.example.valguard.app.core.domain
 
-import com.example.valguard.app.core.domain.Error
 
 sealed interface DataError: Error {
     enum class Remote: DataError{

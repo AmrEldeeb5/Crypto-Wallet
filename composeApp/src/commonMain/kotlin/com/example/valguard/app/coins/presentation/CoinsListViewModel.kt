@@ -12,6 +12,7 @@ import com.example.valguard.app.core.util.toUiText
 import com.example.valguard.app.portfolio.domain.PortfolioCoinModel
 import com.example.valguard.app.portfolio.domain.PortfolioRepository
 import com.example.valguard.app.realtime.domain.ObservePriceUpdatesUseCase
+import com.example.valguard.app.realtime.domain.PriceDirection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.firstOrNull
@@ -32,9 +33,8 @@ class CoinsListViewModel(
     private val _state = MutableStateFlow(CoinsState())
     val state = _state
         .onStart {
-            viewModelScope.launch {
-                getAllCoins()
-            }
+            observeCoins()
+            refreshIfNeeded()
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -72,29 +72,23 @@ class CoinsListViewModel(
         }
     }
 
-    private suspend fun getPortfolioHoldings(): Map<String, PortfolioCoinModel> {
-        return try {
-            when (val result = portfolioRepository.allPortfolioCoinsFlow().firstOrNull()) {
-                is Result.Success -> result.data.associateBy { it.coin.id }
-                is Result.Failure -> emptyMap()
-                null -> emptyMap()
-            }
-        } catch (_: Exception) {
-            emptyMap()
-        }
-    }
+    /**
+     * Observe coins from database (cache-first)
+     */
+    private fun observeCoins() {
+        viewModelScope.launch {
+            getCoinsListUseCase.observe().collect { coinModels ->
+                if (coinModels.isEmpty()) {
+                    // No cached data yet, show loading
+                    _state.update { it.copy(isLoading = true) }
+                    return@collect
+                }
 
-    private suspend fun getAllCoins() {
-        _state.update { it.copy(isLoading = true, error = null) }
+                val portfolioHoldings = getPortfolioHoldings()
 
-        // Fetch portfolio holdings for merging
-        val portfolioHoldings = getPortfolioHoldings()
-
-        when (val coinsResponse = getCoinsListUseCase.execute()) {
-            is Result.Success -> {
-                val coins = coinsResponse.data.map { coinItem ->
+                val coins = coinModels.map { coinItem ->
                     val holding = portfolioHoldings[coinItem.coin.id]
-                    
+
                     // Format change percentage
                     val changeValue = (coinItem.change * 100).toInt() / 100.0
                     val formattedChange = buildString {
@@ -112,10 +106,10 @@ class CoinsListViewModel(
                         formattedChange = formattedChange,
                         changePercent = coinItem.change,
                         isPositive = coinItem.change >= 0,
-                        holdingsAmount = holding?.let { 
+                        holdingsAmount = holding?.let {
                             "${it.ownedAmountInUnit.formatCrypto()} ${coinItem.coin.symbol}"
                         },
-                        holdingsValue = holding?.let { 
+                        holdingsValue = holding?.let {
                             formatFiat(it.ownedAmountInFiat)
                         },
                         sparklineData = coinItem.sparkline,
@@ -124,26 +118,76 @@ class CoinsListViewModel(
                 }
 
                 _state.update {
-                    CoinsState(
+                    it.copy(
                         isLoading = false,
                         coins = coins,
-                        connectionState = it.connectionState
+                        error = null
                     )
                 }
 
                 // Subscribe to real-time updates for all coins
                 subscribeToRealTimeUpdates(coins.map { it.id })
             }
+        }
+    }
 
-            is Result.Failure -> {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        coins = emptyList(),
-                        error = coinsResponse.error.toUiText()
-                    )
+    /**
+     * Refresh from API if cache is stale
+     */
+    private fun refreshIfNeeded() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = _state.value.coins.isEmpty()) }
+            
+            when (val result = getCoinsListUseCase.refreshIfNeeded()) {
+                is Result.Success -> {
+                    // Data will flow through observeCoins()
+                }
+                is Result.Failure -> {
+                    // Only show error if we have no cached data
+                    if (_state.value.coins.isEmpty()) {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.error.toUiText()
+                            )
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    /**
+     * Force refresh (pull-to-refresh)
+     */
+    fun onRefresh() {
+        viewModelScope.launch {
+            _state.update { it.copy(isRefreshing = true) }
+            
+            when (val result = getCoinsListUseCase.forceRefresh()) {
+                is Result.Success -> {
+                    // Data will flow through observeCoins()
+                }
+                is Result.Failure -> {
+                    _state.update {
+                        it.copy(error = result.error.toUiText())
+                    }
+                }
+            }
+            
+            _state.update { it.copy(isRefreshing = false) }
+        }
+    }
+
+    private suspend fun getPortfolioHoldings(): Map<String, PortfolioCoinModel> {
+        return try {
+            when (val result = portfolioRepository.allPortfolioCoinsFlow().firstOrNull()) {
+                is Result.Success -> result.data.associateBy { it.coin.id }
+                is Result.Failure -> emptyMap()
+                null -> emptyMap()
+            }
+        } catch (_: Exception) {
+            emptyMap()
         }
     }
 
@@ -171,17 +215,13 @@ class CoinsListViewModel(
         val coinName = coin?.name.orEmpty()
         val coinSymbol = coin?.symbol.orEmpty()
         
-        // Extract change percent from formatted change (e.g., "$2" -> 2.0)
-        val changePercent = coin?.formattedChange
-            ?.replace("$", "")
-            ?.replace(",", "")
-            ?.toDoubleOrNull() ?: 0.0
+        // Extract change percent from formatted change (e.g., "+2.5%" -> 2.5)
+        val changePercent = coin?.changePercent ?: 0.0
         
+        // Set loading state immediately
         _state.update {
             it.copy(
-                chartState = UiChartState(
-                    sparkLine = emptyList(),
-                    isLoading = true,
+                chartState = ChartState.Loading(
                     coinName = coinName,
                     coinSymbol = coinSymbol,
                     changePercent = changePercent
@@ -192,16 +232,27 @@ class CoinsListViewModel(
         viewModelScope.launch {
             when (val priceHistory = getCoinPriceHistoryUseCase.execute(coinId, "24h")) {
                 is Result.Success -> {
+                    val sparkLine = priceHistory.data
+                        .sortedBy { it.timestamp }
+                        .map { it.price }
+                    
                     _state.update { currentState ->
                         currentState.copy(
-                            chartState = UiChartState(
-                                sparkLine = priceHistory.data.sortedBy { it.timestamp }
-                                    .map { it.price },
-                                isLoading = false,
-                                coinName = coinName,
-                                coinSymbol = coinSymbol,
-                                changePercent = changePercent
-                            )
+                            chartState = if (sparkLine.isEmpty()) {
+                                // CoinGecko returned empty data (stablecoin, rate limit, etc.)
+                                ChartState.Empty(
+                                    coinName = coinName,
+                                    coinSymbol = coinSymbol,
+                                    changePercent = changePercent
+                                )
+                            } else {
+                                ChartState.Success(
+                                    sparkLine = sparkLine,
+                                    coinName = coinName,
+                                    coinSymbol = coinSymbol,
+                                    changePercent = changePercent
+                                )
+                            }
                         )
                     }
                 }
@@ -209,13 +260,11 @@ class CoinsListViewModel(
                 is Result.Failure -> {
                     _state.update { currentState ->
                         currentState.copy(
-                            chartState = UiChartState(
-                                sparkLine = emptyList(),
-                                isLoading = false,
+                            chartState = ChartState.Error(
+                                message = "Could not load chart data",
                                 coinName = coinName,
                                 coinSymbol = coinSymbol,
-                                changePercent = changePercent,
-                                error = "Could not load chart data"
+                                changePercent = changePercent
                             )
                         )
                     }

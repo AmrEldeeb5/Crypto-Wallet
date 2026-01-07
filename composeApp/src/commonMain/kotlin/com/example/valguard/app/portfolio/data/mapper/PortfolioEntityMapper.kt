@@ -9,6 +9,7 @@ import kotlinx.datetime.Clock
 
 fun PortfolioCoinEntity.toPortfolioCoinModel(
     currentPrice: Double,
+    priceChangePercentage24h: Double?,
 ): PortfolioCoinModel {
     return PortfolioCoinModel(
         coin = Coin(
@@ -18,6 +19,7 @@ fun PortfolioCoinEntity.toPortfolioCoinModel(
             iconUrl = iconUrl
         ),
         performancePercent = ((currentPrice - averagePurchasePrice) / averagePurchasePrice) * 100,
+        priceChangePercentage24h = priceChangePercentage24h,
         averagePurchasePrice = averagePurchasePrice,
         ownedAmountInUnit = amountOwned,
         ownedAmountInFiat = amountOwned * currentPrice

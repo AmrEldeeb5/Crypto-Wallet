@@ -44,6 +44,7 @@ class BuyCoinUseCase(
                 PortfolioCoinModel(
                     coin = coin,
                     performancePercent = 0.0,
+                    priceChangePercentage24h = null, // Will be populated from CoinGecko cache
                     averagePurchasePrice = price,
                     ownedAmountInFiat = amountInFiat,
                     ownedAmountInUnit = amountInUnit

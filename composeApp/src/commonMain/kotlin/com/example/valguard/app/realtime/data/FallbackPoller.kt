@@ -1,7 +1,7 @@
 package com.example.valguard.app.realtime.data
 
-import com.example.valguard.app.coins.domain.api.CoinsRemoteDataSource
-import com.example.valguard.app.core.domain.onSuccess
+import com.example.valguard.app.coins.data.repository.CoinGeckoRepository
+import com.example.valguard.app.core.domain.Result
 import com.example.valguard.app.realtime.domain.PriceUpdate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 
 class FallbackPoller(
-    private val coinsRemoteDataSource: CoinsRemoteDataSource,
+    private val coinGeckoRepository: CoinGeckoRepository,
     private val pollingIntervalMs: Long = 30_000L
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -68,26 +68,49 @@ class FallbackPoller(
     private suspend fun pollPrices() {
         if (subscribedCoinIds.isEmpty()) return
 
-        coinsRemoteDataSource.getListOfCoins()
-            .onSuccess { response ->
+        // Refresh coins from CoinGecko API
+        when (val refreshResult = coinGeckoRepository.refreshCoins()) {
+            is Result.Success -> {
                 val timestamp = Clock.System.now().toEpochMilliseconds()
+                
+                // Get updated coins from cache
+                val coins = coinGeckoRepository.getCoinsByIds(subscribedCoinIds.toList())
+                
+                coins.forEach { coin ->
+                    val currentPrice = coin.currentPrice ?: return@forEach
+                    val previousPrice = previousPrices[coin.id] ?: currentPrice
 
-                response.data.coins
-                    .filter { it.uuid in subscribedCoinIds }
-                    .forEach { coin ->
-                        val currentPrice = coin.price?.toDoubleOrNull() ?: return@forEach
-                        val previousPrice = previousPrices[coin.uuid] ?: currentPrice
+                    val priceUpdate = PriceUpdate(
+                        coinId = coin.id,
+                        price = currentPrice,
+                        previousPrice = previousPrice,
+                        timestamp = timestamp
+                    )
 
-                        val priceUpdate = PriceUpdate(
-                            coinId = coin.uuid,
-                            price = currentPrice,
-                            previousPrice = previousPrice,
-                            timestamp = timestamp
-                        )
-
-                        previousPrices[coin.uuid] = currentPrice
-                        _priceUpdates.emit(priceUpdate)
-                    }
+                    previousPrices[coin.id] = currentPrice
+                    _priceUpdates.emit(priceUpdate)
+                }
             }
+            is Result.Failure -> {
+                // On failure, try to emit from cached data
+                val timestamp = Clock.System.now().toEpochMilliseconds()
+                val coins = coinGeckoRepository.getCoinsByIds(subscribedCoinIds.toList())
+                
+                coins.forEach { coin ->
+                    val currentPrice = coin.currentPrice ?: return@forEach
+                    val previousPrice = previousPrices[coin.id] ?: currentPrice
+
+                    val priceUpdate = PriceUpdate(
+                        coinId = coin.id,
+                        price = currentPrice,
+                        previousPrice = previousPrice,
+                        timestamp = timestamp
+                    )
+
+                    previousPrices[coin.id] = currentPrice
+                    _priceUpdates.emit(priceUpdate)
+                }
+            }
+        }
     }
 }

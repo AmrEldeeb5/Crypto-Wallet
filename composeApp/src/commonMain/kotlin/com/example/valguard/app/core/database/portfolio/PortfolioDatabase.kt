@@ -2,6 +2,12 @@ package com.example.valguard.app.core.database.portfolio
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.example.valguard.app.coins.data.local.CoinDao
+import com.example.valguard.app.coins.data.local.CoinDetailDao
+import com.example.valguard.app.coins.data.local.CoinDetailEntity
+import com.example.valguard.app.coins.data.local.CoinEntity
+import com.example.valguard.app.coins.data.local.Converters
 import com.example.valguard.app.compare.data.local.SavedComparisonDao
 import com.example.valguard.app.compare.data.local.SavedComparisonEntity
 import com.example.valguard.app.dca.data.local.DCAExecutionDao
@@ -16,6 +22,9 @@ import com.example.valguard.app.watchlist.data.local.WatchlistDao
 import com.example.valguard.app.watchlist.data.local.WatchlistEntity
 
 
+import com.example.valguard.app.core.database.preferences.PreferenceDao
+import com.example.valguard.app.core.database.preferences.PreferenceEntity
+
 @Database(
     entities = [
         PortfolioCoinEntity::class,
@@ -23,10 +32,14 @@ import com.example.valguard.app.watchlist.data.local.WatchlistEntity
         WatchlistEntity::class,
         DCAScheduleEntity::class,
         DCAExecutionEntity::class,
-        SavedComparisonEntity::class
+        SavedComparisonEntity::class,
+        CoinEntity::class,
+        CoinDetailEntity::class,
+        PreferenceEntity::class
     ],
-    version = 5
+    version = 7
 )
+@TypeConverters(Converters::class)
 abstract class PortfolioDatabase: RoomDatabase() {
     abstract fun portfolioDao(): PortfolioDao
     abstract fun UserBalanceDao(): UserBalanceDao
@@ -34,4 +47,7 @@ abstract class PortfolioDatabase: RoomDatabase() {
     abstract fun dcaScheduleDao(): DCAScheduleDao
     abstract fun dcaExecutionDao(): DCAExecutionDao
     abstract fun savedComparisonDao(): SavedComparisonDao
+    abstract fun coinDao(): CoinDao
+    abstract fun coinDetailDao(): CoinDetailDao
+    abstract fun preferenceDao(): PreferenceDao
 }

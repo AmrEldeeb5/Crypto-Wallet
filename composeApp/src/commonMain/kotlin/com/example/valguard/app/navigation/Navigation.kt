@@ -19,8 +19,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.valguard.app.coindetail.presentation.CoinDetailScreen
 import com.example.valguard.app.coins.presentation.CoinsListScreen
-import com.example.valguard.app.compare.presentation.CompareScreen
-import com.example.valguard.app.dca.presentation.DCAScreen
 import com.example.valguard.app.main.presentation.MainScreen
 import com.example.valguard.app.onboarding.data.OnboardingRepository
 import com.example.valguard.app.onboarding.presentation.OnboardingScreen

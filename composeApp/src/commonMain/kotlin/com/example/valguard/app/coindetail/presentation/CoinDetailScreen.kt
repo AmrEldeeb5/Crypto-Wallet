@@ -25,15 +25,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.filled.Notifications
 import valguard.composeapp.generated.resources.solar__alt_arrow_left_outline
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,7 +58,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.example.valguard.app.coindetail.domain.ChartTimeframe
 import com.example.valguard.app.coindetail.domain.CoinDetailData
 import com.example.valguard.app.coindetail.domain.CoinHoldings
@@ -64,6 +65,7 @@ import com.example.valguard.app.components.AlertModal
 import com.example.valguard.app.components.BarChart
 import com.example.valguard.app.components.BarChartData
 import com.example.valguard.app.components.ChartPoint
+import com.example.valguard.app.components.CoinIconBox
 import com.example.valguard.app.components.EmptyState
 import com.example.valguard.app.components.ErrorState
 import com.example.valguard.app.components.SkeletonBox
@@ -72,6 +74,7 @@ import com.example.valguard.app.core.util.UiState
 import com.example.valguard.app.core.util.getPriceChangeColor
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoSpacing
+import com.example.valguard.theme.Slate900
 import org.koin.compose.viewmodel.koinViewModel
 import org.jetbrains.compose.resources.painterResource
 import valguard.composeapp.generated.resources.Res
@@ -84,11 +87,10 @@ import kotlin.math.pow
 
 // Custom gradient colors
 private val SlateGradientStart = Color(0xFF1E293B) // slate-800
-private val SlateGradientEnd = Color(0xFF0F172A)   // slate-900
+private val SlateGradientEnd = Slate900   // slate-900
 private val EmeraldStart = Color(0xFF34D399)       // emerald-400
 private val EmeraldEnd = Color(0xFF10B981)         // emerald-500
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CoinDetailScreen(
     coinId: String,
@@ -105,54 +107,83 @@ fun CoinDetailScreen(
         viewModel.onEvent(CoinDetailEvent.LoadCoin(coinId))
     }
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.backgroundPrimary)
-            .statusBarsPadding()
-    ) {
-        // Top bar (Compact Navigation Row)
-        CoinDetailTopBar(
-            isInWatchlist = state.isInWatchlist,
-            onBackClick = onDismiss,
-            onWatchlistClick = { viewModel.onEvent(CoinDetailEvent.ToggleWatchlist) }
-        )
-        
-        when (val coinData = state.coinData) {
-            is UiState.Loading -> {
-                CoinDetailLoadingContent()
-            }
-            is UiState.Success -> {
-                CoinDetailContent(
-                    coinData = coinData.data,
-                    holdings = state.holdings,
-                    chartState = state.currentChartState,
-                    selectedTimeframe = state.selectedTimeframe,
-                    isOffline = state.isOffline,
-                    onTimeframeSelected = { viewModel.onEvent(CoinDetailEvent.SelectTimeframe(it)) },
-                    onSetAlertClick = { viewModel.onEvent(CoinDetailEvent.ShowAlertModal) },
-                    onBuyClick = { onBuyClick(coinId) },
-                    onSellClick = { onSellClick(coinId) }
-                )
-            }
-            is UiState.Error -> {
-                ErrorState(
-                    message = coinData.message,
-                    onRetry = { viewModel.onEvent(CoinDetailEvent.Retry) },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            is UiState.Empty -> {
-                EmptyState(
-                    title = "Coin Not Found",
-                    description = "The requested coin could not be found.",
-                    actionLabel = null,
-                    onAction = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.showSnackbar) {
+        val message = state.snackbarMessage
+        if (state.showSnackbar && message != null) {
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.onEvent(CoinDetailEvent.DismissSnackbar)
         }
     }
+
+    Scaffold(
+        containerColor = colors.backgroundPrimary,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = colors.accentBlue500,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        },
+        content = { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colors.backgroundPrimary)
+                    .padding(paddingValues)
+            ) {
+                // Top bar (Compact Navigation Row)
+                CoinDetailTopBar(
+                    isInWatchlist = state.isInWatchlist,
+                    onBackClick = onDismiss,
+                    onWatchlistClick = { viewModel.onEvent(CoinDetailEvent.ToggleWatchlist) }
+                )
+                
+                when (val coinData = state.coinData) {
+                    is UiState.Loading -> {
+                        CoinDetailLoadingContent()
+                    }
+                    is UiState.Success -> {
+                        CoinDetailContent(
+                            coinData = coinData.data,
+                            holdings = state.holdings,
+                            chartState = state.currentChartState,
+                            selectedTimeframe = state.selectedTimeframe,
+                            isOffline = state.isOffline,
+                            onTimeframeSelected = { viewModel.onEvent(CoinDetailEvent.SelectTimeframe(it)) },
+                            onSetAlertClick = { viewModel.onEvent(CoinDetailEvent.ShowAlertModal) },
+                            onBuyClick = { onBuyClick(coinId) },
+                            onSellClick = { onSellClick(coinId) }
+                        )
+                    }
+                    is UiState.Error -> {
+                        ErrorState(
+                            message = coinData.message,
+                            onRetry = { viewModel.onEvent(CoinDetailEvent.Retry) },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    is UiState.Empty -> {
+                        EmptyState(
+                            title = "Coin Not Found",
+                            description = "The requested coin could not be found.",
+                            actionLabel = null,
+                            onAction = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+        }
+    )
     
     // Alert modal
     if (state.showAlertModal) {
@@ -196,15 +227,40 @@ private fun CoinDetailTopBar(
             )
         }
         
-        IconButton(
-            onClick = onWatchlistClick,
-            modifier = Modifier.size(44.dp)
+        // Bookmark Button with Gradient Border/Fill
+        val borderGradient = Brush.linearGradient(
+            colors = listOf(colors.accentBlue400, colors.accentPurple400)
+        )
+        
+        val haptic = LocalHapticFeedback.current
+
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .then(
+                    if (isInWatchlist) {
+                        Modifier.background(borderGradient)
+                    } else {
+                        Modifier.background(colors.cardBackground.copy(alpha = 0.3f))
+                    }
+                )
+                .border(
+                    width = 1.dp,
+                    brush = borderGradient,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onWatchlistClick() 
+                }, 
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = if (isInWatchlist) painterResource(Res.drawable.solar__bookmark_bold) else painterResource(Res.drawable.solar__bookmark_linear),
                 contentDescription = if (isInWatchlist) "Remove from watchlist" else "Add to watchlist",
-                tint = if (isInWatchlist) colors.accentBlue400 else colors.textSecondary.copy(alpha = 0.85f),
-                modifier = Modifier.size(24.dp)
+                tint = if (isInWatchlist) Color.White else colors.textSecondary.copy(alpha = 0.85f),
+                modifier = Modifier.size(22.dp)
             )
         }
     }
@@ -334,12 +390,13 @@ private fun PriceDisplayCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = coinData.iconUrl,
+                CoinIconBox(
+                    iconUrl = coinData.iconUrl ?: "",
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp) // Optimized compact size
-                        .clip(RoundedCornerShape(10.dp))
+                    size = 40.dp,
+                    iconSize = 24.dp,
+                    cornerRadius = 10.dp,
+                    borderColor = colors.accentPurple400
                 )
                 
                 Spacer(modifier = Modifier.width(spacing.md))
@@ -657,10 +714,13 @@ private fun EnhancedStatCard(
 
 @Composable
 private fun RangeCard(
-    high: Double,
-    low: Double,
+    high: Double?,
+    low: Double?,
     currentPrice: Double
 ) {
+    // Don't show range card if data is missing
+    if (high == null || low == null) return
+    
     val colors = LocalCryptoColors.current
     val spacing = LocalCryptoSpacing.current
     
@@ -1104,7 +1164,8 @@ private fun OfflineBanner(modifier: Modifier = Modifier) {
 
 // Utility functions
 
-private fun formatPrice(price: Double): String {
+private fun formatPrice(price: Double?): String {
+    if (price == null) return "N/A"
     return when {
         price >= 1000 -> formatDecimal(price, 2)
         price >= 1 -> formatDecimal(price, 2)
@@ -1121,7 +1182,8 @@ private fun formatAmount(amount: Double): String {
     }
 }
 
-private fun formatLargeNumber(number: Double): String {
+private fun formatLargeNumber(number: Double?): String {
+    if (number == null) return "N/A"
     return when {
         number >= 1_000_000_000_000 -> "${formatDecimal(number / 1_000_000_000_000, 2)}T"
         number >= 1_000_000_000 -> "${formatDecimal(number / 1_000_000_000, 2)}B"
@@ -1142,7 +1204,8 @@ private fun formatLargeNumberWithSuffix(text: String): Pair<String, String> {
     }
 }
 
-private fun formatSupply(supply: Double, symbol: String): String {
+private fun formatSupply(supply: Double?, symbol: String): String {
+    if (supply == null) return "N/A"
     val formatted = when {
         supply >= 1_000_000_000 -> "${formatDecimal(supply / 1_000_000_000, 1)}B"
         supply >= 1_000_000 -> "${formatDecimal(supply / 1_000_000, 1)}M"

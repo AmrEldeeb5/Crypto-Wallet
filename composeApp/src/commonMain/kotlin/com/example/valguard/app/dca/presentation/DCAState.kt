@@ -14,7 +14,8 @@ data class DCAState(
     val editingSchedule: DCASchedule? = null,
     val createFormState: DCACreateFormState = DCACreateFormState(),
     val creationStatus: CreationStatus = CreationStatus.Idle,
-    val showUpgradePrompt: Boolean = false
+    val showUpgradePrompt: Boolean = false,
+    val availableCoins: List<DCASelectableCoin> = emptyList()
 )
 
 sealed class CreationStatus {

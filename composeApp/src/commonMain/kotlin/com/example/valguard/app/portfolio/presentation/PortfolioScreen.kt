@@ -21,16 +21,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.valguard.app.components.BalanceHeader
 import com.example.valguard.app.components.CoinCard
 import com.example.valguard.app.components.EmptyState
 import com.example.valguard.app.components.UiCoinItem
-import com.example.valguard.app.realtime.domain.PriceDirection
+import com.example.valguard.app.navigation.ScrollBehaviorState
+import com.example.valguard.app.navigation.rememberScrollBehaviorState
 import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoColors
-import com.example.valguard.theme.LocalCryptoSpacing
 import com.example.valguard.theme.LocalCryptoTypography
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -39,6 +40,8 @@ import org.koin.compose.viewmodel.koinViewModel
 fun PortfolioScreen(
     onCoinItemClicked: (String) -> Unit,
     onDiscoverCoinsClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+    scrollBehaviorState: ScrollBehaviorState = rememberScrollBehaviorState()
 ) {
     val portfolioViewModel = koinViewModel<PortfolioViewModel>()
     val state by portfolioViewModel.state.collectAsStateWithLifecycle()
@@ -47,7 +50,7 @@ fun PortfolioScreen(
     if (state.isLoading) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
+            modifier = modifier.fillMaxSize()
         ) {
             CircularProgressIndicator(
                 color = colors.profit,
@@ -58,7 +61,9 @@ fun PortfolioScreen(
         PortfolioContent(
             state = state,
             onCoinItemClicked = onCoinItemClicked,
-            onDiscoverCoinsClicked = onDiscoverCoinsClicked
+            onDiscoverCoinsClicked = onDiscoverCoinsClicked,
+            modifier = modifier,
+            scrollBehaviorState = scrollBehaviorState
         )
     }
 }
@@ -68,14 +73,17 @@ fun PortfolioContent(
     state: PortfolioState,
     onCoinItemClicked: (String) -> Unit,
     onDiscoverCoinsClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+    scrollBehaviorState: ScrollBehaviorState = rememberScrollBehaviorState()
 ) {
     val colors = LocalCryptoColors.current
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(colors.cardBackgroundElevated)
+            .nestedScroll(scrollBehaviorState.nestedScrollConnection)
     ) {
         BalanceHeader(
             totalValue = state.portfolioValue,
@@ -141,7 +149,8 @@ private fun PortfolioCoinsList(
                         CoinCard(
                             coin = coin.toUiCoinItem(),
                             onClick = { onCoinItemClicked(coin.id) },
-                            showHoldings = true
+                            showHoldings = true,
+                            borderColor = colors.accentPurple400
                         )
                     }
                 }

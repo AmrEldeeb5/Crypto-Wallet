@@ -14,7 +14,9 @@ data class CoinDetailState(
     val selectedTimeframe: ChartTimeframe = ChartTimeframe.DAY_1,
     val isInWatchlist: Boolean = false,
     val isOffline: Boolean = false,
-    val showAlertModal: Boolean = false
+    val showAlertModal: Boolean = false,
+    val showSnackbar: Boolean = false,
+    val snackbarMessage: String? = null
 ) {
     val hasHoldings: Boolean get() = holdings != null && holdings.amountOwned > 0
     
@@ -29,6 +31,7 @@ sealed class CoinDetailEvent {
     data object Retry : CoinDetailEvent()
     data object ShowAlertModal : CoinDetailEvent()
     data object HideAlertModal : CoinDetailEvent()
+    data object DismissSnackbar : CoinDetailEvent()
     data object NavigateToBuy : CoinDetailEvent()
     data object NavigateToSell : CoinDetailEvent()
     data object NavigateBack : CoinDetailEvent()

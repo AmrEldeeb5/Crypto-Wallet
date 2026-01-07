@@ -92,12 +92,12 @@ fun FeaturesStep(
                 FeatureCard(
                     feature = gridFeatures[0],
                     index = 0,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).height(160.dp)
                 )
                 FeatureCard(
                     feature = gridFeatures[1],
                     index = 1,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).height(160.dp)
                 )
             }
             
@@ -109,12 +109,12 @@ fun FeaturesStep(
                 FeatureCard(
                     feature = gridFeatures[2],
                     index = 2,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).height(160.dp)
                 )
                 FeatureCard(
                     feature = gridFeatures[3],
                     index = 3,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).height(160.dp)
                 )
             }
         }

@@ -113,29 +113,14 @@ fun ExpandableCoinCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Coin icon with rounded square shape
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(CryptoGradients.coinIconGradient(coin.symbol)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (coin.iconUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = coin.iconUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(32.dp)
-                    )
-                } else {
-                    Text(
-                        text = coin.symbol.take(2),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.textPrimary
-                    )
-                }
-            }
+            CoinIconBox(
+                iconUrl = if (coin.iconUrl.isNotEmpty()) coin.iconUrl else "",
+                contentDescription = null,
+                size = 48.dp,
+                iconSize = 32.dp,
+                cornerRadius = 12.dp,
+                borderColor = colors.accentPurple400
+            )
             
             Spacer(modifier = Modifier.width(12.dp))
             

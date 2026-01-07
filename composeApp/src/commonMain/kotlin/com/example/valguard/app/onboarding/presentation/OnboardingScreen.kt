@@ -18,19 +18,9 @@
  */
 package com.example.valguard.app.onboarding.presentation
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,32 +44,26 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.valguard.app.onboarding.presentation.components.OnboardingButton
-import com.example.valguard.app.onboarding.presentation.components.OnboardingProgressBar
 import com.example.valguard.app.onboarding.presentation.steps.CoinSelectionStep
 import com.example.valguard.app.onboarding.presentation.steps.FeaturesStep
 import com.example.valguard.app.onboarding.presentation.steps.NotificationsStep
@@ -87,8 +71,8 @@ import com.example.valguard.app.onboarding.presentation.steps.WelcomeStep
 import com.example.valguard.theme.AppTheme
 import com.example.valguard.theme.LocalCryptoColors
 import com.example.valguard.theme.LocalCryptoTypography
-import com.example.valguard.theme.LocalCryptoTypography
-import kotlinx.coroutines.launch
+import com.example.valguard.theme.Slate900
+import com.example.valguard.theme.Slate950
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -119,8 +103,7 @@ fun OnboardingScreen(
         initialPage = 0,
         pageCount = { 4 }
     )
-    val coroutineScope = rememberCoroutineScope()
-    
+
     // Set navigation callback
     LaunchedEffect(Unit) {
         viewModel.setNavigationCallback(onComplete)
@@ -163,10 +146,10 @@ fun OnboardingScreen(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF020617), // slate-950 - deep top
-                            Color(0xFF0F172A), // slate-900 - lighter middle
+                            Slate950, // slate-950 - deep top
+                            Slate900, // slate-900 - lighter middle
                             Color(0xFF1E293B), // slate-800 - subtle lift
-                            Color(0xFF0F172A)  // slate-900 - return to depth
+                            Slate900  // slate-900 - return to depth
                         )
                     )
                 )
@@ -320,8 +303,7 @@ private fun SkipConfirmationDialog(
 ) {
     val colors = LocalCryptoColors.current
     val typography = LocalCryptoTypography.current
-    val dimensions = AppTheme.dimensions
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
