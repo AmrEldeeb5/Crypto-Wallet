@@ -84,8 +84,8 @@ fun BarChart(
             val avgPrice = sampledValues.average()
             val range = (maxPrice - minPrice).coerceAtLeast(0.000001)
             
-            // Height constraints: Bars occupy 65% of height, centered vertically
-            val chartHeight = size.height * 0.65f
+            // Height constraints: Bars occupy 70% of height, centered vertically
+            val chartHeight = size.height * 0.70f
             val verticalOffset = (size.height - chartHeight) / 2f
             
             // Draw baseline (Average)

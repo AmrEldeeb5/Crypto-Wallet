@@ -448,12 +448,12 @@ private fun PriceDisplayCard(
                         .scale(scale)
                         .clip(RoundedCornerShape(10.dp))
                         .background(changeColor.copy(alpha = 0.11f))
-                        .padding(horizontal = spacing.sm, vertical = 4.dp)
+                        .padding(horizontal = spacing.md, vertical = 6.dp)
                 ) {
                     Text(
                         text = "${if (isPositive) "+" else ""}${formatDecimal(coinData.change24h, 2)}%",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
                         color = changeColor.copy(alpha = 0.9f)
                     )
                 }
@@ -473,7 +473,7 @@ private fun PriceDisplayCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp),
+                    .height(190.dp),
                 contentAlignment = Alignment.Center
             ) {
                 when (chartState) {
